@@ -1,0 +1,127 @@
+require("dotenv").config();
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
+
+const commandsPath = path.join(__dirname, "../..", "commands");
+
+// Emoji untuk setiap kategori
+const categoryEmojis = {
+  leveling: "🏆",
+  fun: "🎉",
+  automod: "🤖",
+  economy: "💰",
+  moderation: "🔨",
+  suggestion: "💡",
+  giveaway: "🎁",
+  ticket: "🎫",
+  invites: "📩",
+  utility: "🛠️",
+  information: "ℹ️",
+};
+
+module.exports = {
+  data: new SlashCommandBuilder().setName("help").setDescription("Menampilkan menu bantuan untuk bot."),
+
+  async execute(interaction) {
+    const categories = fs.readdirSync(commandsPath);
+    const botIcon = interaction.client.user.displayAvatarURL({ dynamic: true });
+    let pageIndex = 0;
+
+    const generateHomeEmbed = () => ({
+      color: 0x0099ff,
+      title: `> ${process.env.BOTNAME} siap membantu!`,
+      description: `${process.env.BOTDESCRIPTION}`,
+      thumbnail: {
+        url: botIcon,
+      },
+      fields: [
+        { name: "📌 __INFO BOT__", value: `> :arrow_right: Prefix: \`${process.env.PREFIX}\`\n> :arrow_right: Versi Discord.js: \`v${require("discord.js").version}\`\n> :arrow_right: Berjalan di Node: \`${process.versions.node}\`\n> :arrow_right: Dibuat oleh [kenndeclouv](https://kenndeclouv.rf.gd)` },
+        { name: "📋 __Kategori Tersedia__", value: categories.map((cat) => `> ${categoryEmojis[cat] || "❓"} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`).join("\n") },
+      ],
+      footer: {
+        text: "Gunakan tombol di bawah untuk navigasi.",
+      },
+    });
+
+    // Membuat Category Embed
+    const generateCategoryEmbed = (index) => {
+      const category = categories[index];
+      const commandFiles = fs.readdirSync(path.join(commandsPath, category)).filter((file) => file.endsWith(".js"));
+
+      const commands = commandFiles
+        .map((file) => {
+          const command = require(path.join(commandsPath, category, file));
+          const subcommands = command.data.options ? command.data.options.map((option) => option.name).join(", ") : "Tidak ada subcommands";
+          return `> **/${command.data.name}**: ${subcommands}`;
+        })
+        .join("\n");
+
+      return {
+        color: 0x0099ff,
+        title: `📋 __Perintah ${category.charAt(0).toUpperCase() + category.slice(1)}__`,
+        description: commands || "Tidak ada perintah yang tersedia dalam kategori ini.",
+        footer: {
+          text: `Halaman ${index + 1} dari ${categories.length}`,
+        },
+      };
+    };
+
+    // Baris Aksi untuk tombol navigasi
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("prev")
+        .setLabel("Sebelumnya")
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(pageIndex === 0),
+      new ButtonBuilder().setCustomId("home").setLabel("Beranda").setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId("next")
+        .setLabel("Berikutnya")
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(pageIndex === categories.length - 1)
+    );
+
+    // Tunda balasan terlebih dahulu untuk memberi lebih banyak waktu bagi bot untuk memproses
+    await interaction.deferReply({ ephemeral: true });
+
+    // Kirim pesan bantuan awal
+    const helpMessage = await interaction.editReply({ embeds: [generateHomeEmbed()], components: [row], fetchReply: true });
+
+    const filter = (i) => i.user.id === interaction.user.id;
+
+    // Buat kolektor komponen untuk interaksi tombol
+    const collector = helpMessage.createMessageComponentCollector({ filter, time: 60000 });
+
+    collector.on("collect", async (i) => {
+      if (i.customId === "next") {
+        if (pageIndex < categories.length - 1) {
+          pageIndex++;
+          await i.update({
+            embeds: [generateCategoryEmbed(pageIndex)],
+            components: [row],
+          });
+        }
+      } else if (i.customId === "prev") {
+        if (pageIndex > 0) {
+          pageIndex--;
+          await i.update({
+            embeds: [generateCategoryEmbed(pageIndex)],
+            components: [row],
+          });
+        }
+      } else if (i.customId === "home") {
+        pageIndex = 0;
+        await i.update({
+          embeds: [generateHomeEmbed()],
+          components: [row],
+        });
+      }
+    });
+
+    collector.on("end", () => {
+      row.components.forEach((button) => button.setDisabled(true));
+      interaction.editReply({ components: [row] });
+    });
+  },
+};
