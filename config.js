@@ -7,5 +7,7 @@ module.exports = {
     rob: 1800, // 30 minutes
     hack: 300, // 5 minutes
     leveling: 60000, // 1 minute
+    pet: 900, // 15 minutes
+    gacha: 1800, // 30 minutes
   },
 };

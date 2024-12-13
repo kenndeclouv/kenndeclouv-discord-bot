@@ -1,105 +1,223 @@
-
-[![Version][version-shield]](version-url)
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-<center><img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Discord-Bot&fontSize=80&fontAlignY=35&animation=twinkling&fontColor=gradient" /></center>
+<p align="center">
+    <a href="https://kenndeclouv.rf.gd">
+    <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg" border="0" width="400" style="margin:0 auto; border-radius: 10px">
+    </a>
+</p>
 <br />
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/itz-princeyt336/Discord-Bot">
+  <a href="https://github.com/KennDeClou/kenndeclouv-discord-bot">
   </a>
 
-  <h3 align="center">Discord-Bot</h3>
-
+  <h3 align="center">Kenndeclouv Discord Bot</h3>
   <p align="center">
-    Discord-bot is an updated version that made by friday, an advanced Discord multipurpose bot containing more than 100 commands.<br> It can do Moderation, Tickets, Giveaways, Economy, Invites, Utilities, Suggestions, Server Stats etc.
-    <br />
-    <a href="https://github.com/itz-princeyt336/discord-bot/issues">Report Bug</a>
+    <a href="https://github.com/KennDeClouv/kenndeclouv-discord-bot/issues">Report Bug</a>
     ·
-    <a href="https://github.com/itz-princeyt336/discord-bot/issues">Request Feature</a>
+    <a href="https://github.com/KennDeClouv/kenndeclouv-discord-bot/issues">Request Feature</a>
   </p>
 </p>
 
-<!-- NOTICE -->
 
-### <img src="https://cdn.discordapp.com/emojis/1055803759831294013.png" width="20px" height="20px"> 》Notice 
-> You may not claim this as your own! The original source is created by me (Friday)
+## 📖 Overview
 
-> Discord-Bot is a multipurpose Discord bot base in [Discord.js](https://github.com/Discordjs/discordjs)
-If you like this repository, feel free to leave a star ⭐ to motivate me!
+[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=KennDeClouv&repo=kenndeclouv-discord-bot&theme=tokyonight)](https://github.com/KennDeClouv) <br/>
+Discord Bot Leveling System adalah bot yang dirancang untuk memberikan pengalaman interaktif dengan sistem leveling. Pengguna akan mendapatkan XP setiap kali mereka mengirim pesan, dengan hadiah berupa role khusus setiap mencapai level tertentu.
 
-<!-- ABOUT THE PROJECT -->
+## 📃 Features
 
-## <img src="https://cdn.discordapp.com/emojis/859424401186095114.png" width="20px" height="20px">》Description 
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=itz-princeyt336&repo=Discord-bot&theme=tokyonight)](https://github.com/itz-princeyt336/Discord-bot)
-## <img src="https://cdn.discordapp.com/emojis/852881450667081728.gif" width="20px" height="20px">》Feature
-- [x] Slash Commands 
-- [x] Upto date with Discord.js v14
-- [x] Tickets
-- [x] Utility Commands
-- [x] Suggestions 
-- [x] Giveaways 
-- [x] Easy to use
-- [x] Customizable
-- [x] And much more
-- [x] Don't wanna host it yourself?
-## <img src="https://cdn.discordapp.com/emojis/1028680849195020308.png" width="25px" height="25px">》Screenshots
-<br />
-<p align="center">
-  <a href="https://github.com/itz-princeyt336/discord-bot">
-    <img src="https://cdn.discordapp.com/attachments/1195025793957494814/1294935547814481960/image.png?ex=670ecc75&is=670d7af5&hm=7b50c739248df299782f1904bbad2056c1ef849df53b54b690e0492b865ee7b8&">
-  </a>
-</p>
+- [x] **Moderation**: Perintah slash command untuk moderation seperti kick, ban, dan lainnya.
+- [x] **Slash Command**: Perintah slash command untuk mengatur bot.
+- [x] **Giveaway**: Perintah slash command untuk giveaway.
+- [x] **Automod**: Perintah slash command untuk automod.
+- [x] **Leveling System**: Dapatkan XP berdasarkan aktivitas di channel.
+- [x] **Cooldown XP**: Batasi pemberian XP dengan jeda waktu 1 menit.
+- [x] **Role Rewards**: Berikan role spesial sebagai hadiah di level tertentu.
+- [x] **Welcome Message**: Pesan welcome untuk member baru.
+- [x] **Economy**: Perintah slash command untuk economy seperti bank kerja, shop, dan lainnya.
+- [x] **Customizable**: Konfigurasi sesuai kebutuhan.
 
-## <img src="https://cdn.discordapp.com/emojis/1009754836314628146.gif" width="25px" height="25px">》Requirements
-- NodeJs v17+
-- Java v13 for lavalink server.
-- Discord Token. Get it from [Discord Developers Portal](https://discord.com/developers/applications)
-- Mongo Database URL. Get it from [MongoDB](https://cloud.mongodb.com/v2/635277bf9f5c7b5620db28a4#clusters)
-- ClientID `for loading slash commands.` [Discord Developers Portal](https://discord.com/developers/applications)
+## ⚙️ Prerequisites
 
-## <img src="https://cdn.discordapp.com/emojis/814216203466965052.png" width="25px" height="25px">》Installation Guide
+Sebelum menjalankan bot ini, pastikan kamu sudah memiliki:
 
-### <img src="https://cdn.discordapp.com/emojis/1028680849195020308.png" width="15px" height="15px"> Installing via [NPM](https://www.npmjs.com/)
-Clone the repo by running
-```bash
-git clone https://github.com/itz-princeyt336/Discord-Bot.git
-```
-### After cloning Fill all requirement in `.env` **(rename `.env.example` to `.env`)**, then run
+1. **Node.js** (Versi terbaru)
+2. **npm** (biasanya terinstal bersama Node.js)
+3. Token bot Discord dari [Discord Developer Portal](https://discord.com/developers/applications).
+4. **Discord.js** library terinstal.
+5. **MySQL** database terinstal.
 
-```bash
-npm install
-```
-To start your bot 
+## 📖 Tutorial Instalasi Discord Bot Leveling System
 
-```js
-node index.js
-```
+## 1. Siapkan Prasyarat
 
-## <img src="https://cdn.discordapp.com/emojis/1036083490292244493.png" width="15px" height="15px">》Support Server
-[![DiscordBanner](https://invidget.switchblade.xyz/zPjH55uCYt)](https://discord.gg/zPjH55uCYt)
+pastikan kamu sudah menginstal software berikut:
 
-[Support Server](https://discord.gg/zPjH55uCYt) - Discord-Bot's Support Server Invite
+1. **Node.js**
 
-# Donate
+   - unduh [node.js](https://nodejs.org/) dan instal di komputer kamu.
+   - cek instalasi dengan perintah berikut di terminal:
+     ```bash
+     node -v
+     npm -v
+     ```
+     jika versi node.js dan npm muncul, berarti instalasi berhasil.
 
- By Donating, You Will Help Me To Maintain This Project 
+2. **Git**
 
-<img src="https://cdn.discordapp.com/emojis/809085860632985630.png" width="15px" height="15px"> 》[Sponsor](https://github.com/sponsors/itz-princeyt336)
+   - unduh dan instal [git](https://git-scm.com/).
+   - cek instalasi dengan:
+     ```bash
+     git --version
+     ```
 
-[version-shield]: https://img.shields.io/github/package-json/v/itz-princeyt336/Discord-Bot?style=for-the-badge
-[version-url]: https://github.com/brblacky/WaveMusic
-[contributors-shield]: https://img.shields.io/github/contributors/itz-princeyt336/Discord-Bot.svg?style=for-the-badge
-[contributors-url]: https://github.com/itz-princeyt336/Discord-Bot/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/itz-princeyt336/Discord-Bot.svg?style=for-the-badge
-[forks-url]: https://github.com/itz-princeyt336/Discord-Bot/network/members
-[stars-shield]: https://img.shields.io/github/stars/itz-princeyt336/Discord-Bot.svg?style=for-the-badge
-[stars-url]: https://github.com/itz-princeyt336/Discord-Bot/stargazers
-[issues-shield]: https://img.shields.io/github/issues/itz-princeyt336/Discord-Bot.svg?style=for-the-badge
-[issues-url]: https://github.com/itz-princeyt336/Discord-Bot/issues
-[license-shield]: https://img.shields.io/github/license/itz-princeyt336/Discord-Bot.svg?style=for-the-badge
-[license-url]: https://github.com/itz-princeyt336/Discord-Bot/blob/master/LICENSE
+3. **Token Discord Bot**
+   - buka [discord developer portal](https://discord.com/developers/applications).
+   - klik tombol **new application**, beri nama bot, dan buat.
+   - navigasi ke tab **bot**, klik **add bot**, lalu salin token bot.
+
+## 2. Clone Repository
+
+1. buka terminal atau command prompt.
+2. pindah ke folder tempat kamu ingin menyimpan bot:
+   ```bash
+   cd path/to/your/folder
+   ```
+3. clone repository:
+   ```bash
+   git clone https://github.com/KennDeClouv/kenndeclouv-discord-bot.git
+   cd kenneclouv-discord-bot
+   ```
+
+## 3. Install Dependencies
+
+1. pastikan kamu berada di dalam folder bot.
+2. jalankan perintah berikut untuk menginstal library yang dibutuhkan:
+   ```bash
+   npm install
+   ```
+3. tunggu sampai semua dependensi selesai terinstal.
+
+
+## 4. Setup File Environment
+
+1. buat file `.env` di folder root proyek.
+2. tambahkan konfigurasi berikut:
+
+   ```env
+   # BOT SETTINGS
+   BOTNAME=bot-name
+   BOTDESCRIPTION=bot-description.
+   TOKEN=your-bot-token
+   CLIENT_ID=bot-application-id
+   ADMIN_ROLE_ID=admin-role-id
+   PREFIX=/
+
+   # MYSQL DATABASE
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=
+   DB_NAME=discord_bot
+
+   # SETTINGS
+   SET_STATUS=online
+   SET_ACTIVITY=Genshin Impact
+
+   # COMMANDS
+   AUTOMOD_ON=true
+   ECONOMY_ON=true
+   GIVEAWAY_ON=true
+   INVITES_ON=true
+   MODERATION_ON=true
+   SUGGESTION_ON=true
+   TICKET_ON=true
+   UTILITY_ON=true
+
+   # LEVELING
+   LEVELING_ON=true
+   LEVELING_CHANNEL=leveling-channel-id
+   LEVELING_COOLDOWN=0
+   LEVELING_XP=15
+
+   # WELCOME
+   WELCOME_IN_ON=true
+   WELCOME_IN_CHANNEL_ID=welcome-channel-id
+   WELCOME_OUT_ON=true
+   WELCOME_OUT_CHANNEL_ID=welcome-channel-id
+
+   # CHANNELS
+   STARTUP=true
+   HOME_CHANNEL=home-channel-id
+   RULES_CHANNEL=rules-channel-id
+   ROLEINFO_CHANNEL=roleinfo-channel-id
+   ADDROLES_CHANNEL=addroles-channel-id
+   ```
+
+   **keterangan**:
+
+   - `BOTNAME`: nama bot kamu
+   - `BOTDESCRIPTION`: deskripsi singkat tentang bot kamu
+   - `TOKEN`: token bot discord kamu
+   - `CLIENT_ID`: id aplikasi bot kamu
+   - `ADMIN_ROLE_ID`: id role admin di server kamu
+   - `PREFIX`: prefix untuk command bot, default '/'
+   - `DB_HOST`: host database, biasanya 'localhost'
+   - `DB_USER`: user untuk koneksi ke database
+   - `DB_PASSWORD`: password database user
+   - `DB_NAME`: nama database yang akan digunakan bot
+   - `SET_STATUS`: status bot, pilih 'online', 'idle', 'dnd', atau 'invisible'
+   - `SET_ACTIVITY`: teks aktivitas bot yang ditampilkan
+   - `AUTOMOD_ON`: atur ke `true` untuk mengaktifkan automod
+   - `ECONOMY_ON`: atur ke `true` untuk mengaktifkan sistem ekonomi
+   - `GIVEAWAY_ON`: atur ke `true` untuk mengaktifkan giveaway
+   - `INVITES_ON`: atur ke `true` untuk mengaktifkan sistem invite tracking
+   - `MODERATION_ON`: atur ke `true` untuk mengaktifkan fitur moderasi
+   - `SUGGESTION_ON`: atur ke `true` untuk mengaktifkan sistem saran
+   - `TICKET_ON`: atur ke `true` untuk mengaktifkan sistem tiket
+   - `UTILITY_ON`: atur ke `true` untuk mengaktifkan perintah utilitas
+   - `LEVELING_ON`: atur ke `true` untuk mengaktifkan sistem leveling
+   - `LEVELING_CHANNEL`: id channel untuk mengirim pesan level up
+   - `LEVELING_COOLDOWN`: cooldown dalam detik antara mendapatkan xp, atur ke 0 untuk menonaktifkan
+   - `LEVELING_XP`: jumlah xp yang didapat per pesan
+   - `WELCOME_IN_ON`: atur ke `true` untuk mengaktifkan pesan selamat datang
+   - `WELCOME_IN_CHANNEL_ID`: id channel untuk mengirim pesan selamat datang
+   - `WELCOME_OUT_ON`: atur ke `true` untuk mengaktifkan pesan selamat tinggal
+   - `WELCOME_OUT_CHANNEL_ID`: id channel untuk mengirim pesan selamat tinggal
+   - `STARTUP`: atur ke `true` jika ingin mengirim pesan startup saat bot dinyalakan (CHANNEL DIBAWAH INI HARUS ADA JIKA STARTUP TRUE)
+   - `HOME_CHANNEL`: id channel untuk mengirim pesan home
+   - `RULES_CHANNEL`: id channel untuk mengirim pesan peraturan
+   - `ROLEINFO_CHANNEL`: id channel untuk mengirim pesan info role
+   - `ADDROLES_CHANNEL`: id channel untuk mengirim pesan menambahkan role
+
+
+## 5. Jalankan Bot
+
+1. pastikan semua konfigurasi sudah benar.
+2. jalankan perintah berikut untuk memulai bot:
+   ```bash
+   node index.js
+   ```
+3. jika bot berhasil berjalan, akan muncul pesan seperti:
+   ```bash
+   kenndeclouv#1234 terhubung!
+   ```
+4. lihat di terminal apakah ada error atau tidak.
+5. jika tidak ada error, bot sudah berjalan dan siap digunakan.
+6. jika ada error, cek di file yang bersangkutan.
+7. pencet ctrl + c untuk menghentikan bot.
+
+
+## 6. Undang Bot ke Server
+
+1. kembali ke [discord developer portal](https://discord.com/developers/applications).
+2. pilih aplikasi bot kamu, lalu buka tab **OAuth2** > **URL Generator**.
+3. centang `bot` di scopes dan tambahkan permission yang dibutuhkan (misal: ``, `Manage Roles`, `Send Messages`).
+4. salin url yang dihasilkan, lalu buka di browser untuk mengundang bot ke server kamu.
+
+## 7. Tes Bot
+
+1. buka server discord tempat bot sudah diundang.
+2. /ping untuk melihat ping bot.
+3. selamat menggunakan bot!
+
+dikembangkan dengan 💘 oleh [kenndeclouv](https://kenndeclouv.rf.gd), original dari [itz-princeyt336](https://github.com/itz-princeyt336)

@@ -10,10 +10,7 @@ const addXp = async (userId, xpToAdd, message) => {
   let user = await User.findOne({ where: { userId } });
 
   if (!user) {
-    return message.reply({
-      content: "Kamu belum memiliki akun. Gunakan `/account create` untuk membuat akun.",
-      ephemeral: true,
-    });
+    return console.log("User not found");
   }
 
   // Tambahkan XP ke user

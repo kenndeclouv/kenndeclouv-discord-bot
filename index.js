@@ -1,10 +1,12 @@
 const { sendAddRolesMessage, handleAddRolesInteraction } = require("./startup/addroles");
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require("discord.js");
+const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder } = require("discord.js");
 const { sendHomeMessage, handleHomeInteraction } = require("./startup/home");
 const { sendRoleInfoMessage } = require("./startup/roleinfo");
 const { sendRulesMessage } = require("./startup/rules");
 const sequelize = require("./database/sequelize");
+const { UserPet } = require("./database/models");
 const automodLogic = require("./automodLogic");
+const User = require("./database/models/User");
 const figlet = require("figlet");
 const path = require("path");
 require("dotenv").config();
@@ -69,6 +71,7 @@ const deployCommands = async () => {
       for (const file of commandFiles) {
         const command = require(`${commandsPath}/${category}/${file}`);
         commands.push(command.data.toJSON());
+        console.log(`komen yang diload: ${command.data.name}`);
       }
     });
     await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
@@ -81,7 +84,7 @@ const deployCommands = async () => {
 client.once("ready", async () => {
   await deployCommands();
 
-  if (process.env.HOME_STARTUP === "true") {
+  if (process.env.STARTUP === "true") {
     try {
       const HomeChannel = client.channels.cache.get(process.env.HOME_CHANNEL);
       const RulesChannel = client.channels.cache.get(process.env.RULES_CHANNEL);
@@ -97,6 +100,44 @@ client.once("ready", async () => {
     }
   }
   client.on("interactionCreate", handleHomeInteraction, handleAddRolesInteraction);
+
+  // pet status update
+  setInterval(async () => {
+    try {
+      const pets = await UserPet.findAll(); // mengambil semua user pet
+
+      for (const pet of pets) {
+        // update kelaparan, kebahagiaan, dan kesehatan
+        pet.hunger = Math.max(pet.hunger - 5, 0); // kelaparan berkurang tiap interval
+        pet.happiness = Math.max(pet.happiness - 10, 0); // kebahagiaan berkurang lebih lambat
+
+        if (pet.hunger <= 0 && pet.happiness <= 0 && !pet.isDead) {
+          pet.isDead = true;
+
+          // cari user berdasarkan userId pet
+          const user = await User.findOne({ where: { userId: pet.userId, isDead: false } });
+
+          if (user) {
+            const embed = new EmbedBuilder().setTitle("💀 Pet Kamu Telah Mati!").setDescription(`Pet kamu telah mati karena kelaparan!`).setColor("Red");
+
+            try {
+              // kirim pesan langsung ke user
+              const discordUser = await client.users.fetch(user.userId);
+              await discordUser.send({ embeds: [embed] });
+            } catch (sendErr) {
+              console.error(`gagal mengirim pesan ke user ${user.userId}:`, sendErr);
+            }
+          }
+        }
+
+        await pet.save();
+      }
+
+      console.log("Pet status updated!");
+    } catch (err) {
+      console.error("Error updating pet status:", err);
+    }
+  }, 60 * 60 * 1000); // 1 jam
 });
 // BOT LOGIN
 client.login(process.env.TOKEN);

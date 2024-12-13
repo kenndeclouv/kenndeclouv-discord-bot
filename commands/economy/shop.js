@@ -11,9 +11,9 @@ module.exports = {
     }
 
     const items = [
-      { name: "🧪 Poison", price: 150, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
-      { name: "🛡️ Shield", price: 100, description: "Perisai yang kokoh untuk melindungi diri dari pencuri." },
-      { name: "⚔️ Sword", price: 150, description: "Pedang yang kuat untuk bertarung melawan pencuri." },
+      { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
+      { name: "🛡️ Shield", price: 200, description: "Perisai yang kokoh untuk melindungi diri dari pencuri." },
+      { name: "⚔️ Sword", price: 250, description: "Pedang yang kuat untuk bertarung melawan pencuri." },
     ];
 
     const embed = new EmbedBuilder()
