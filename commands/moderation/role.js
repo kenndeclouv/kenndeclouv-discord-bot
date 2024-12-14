@@ -1,16 +1,18 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const checkPermission = require("../../helpers/checkPermission");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("role")
-    .setDescription("Assigns or removes a role from a user.")
-    .addUserOption((option) => option.setName("user").setDescription("User to modify").setRequired(true))
-    .addRoleOption((option) => option.setName("role").setDescription("Role to assign/remove").setRequired(true))
-    .addStringOption((option) => option.setName("action").setDescription("Choose whether to add or remove the role.").setRequired(true).addChoices({ name: "Add", value: "add" }, { name: "Remove", value: "remove" })),
+    .setDescription("Menambahkan atau menghapus peran dari pengguna.")
+    .addUserOption((option) => option.setName("user").setDescription("Pengguna yang akan dimodifikasi").setRequired(true))
+    .addRoleOption((option) => option.setName("role").setDescription("Peran yang akan ditambahkan/dihapus").setRequired(true))
+    .addStringOption((option) => option.setName("action").setDescription("Pilih apakah akan menambahkan atau menghapus peran.").setRequired(true).addChoices({ name: "Tambah", value: "add" }, { name: "Hapus", value: "remove" })),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      const embed = new EmbedBuilder().setColor("Red").setDescription("❌ Kamu tidak punya izin untuk menggunakan perintah ini.");
+      return interaction.editReply({ embeds: [embed] });
     }
     const user = interaction.options.getUser("user");
     const role = interaction.options.getRole("role");
@@ -19,25 +21,34 @@ module.exports = {
 
     // Check if the command issuer has permission to manage roles
     if (!interaction.member.permissions.has("MANAGE_ROLES")) {
-      return interaction.reply({ content: "You do not have permission to manage roles.", ephemeral: true });
+      const embed = new EmbedBuilder().setColor("Red").setDescription("Kamu tidak memiliki izin untuk mengelola peran.");
+      return interaction.editReply({ embeds: [embed] });
     }
 
     // Add or remove the role based on the action
+    const embed = new EmbedBuilder()
+      .setThumbnail(interaction.client.user.displayAvatarURL())
+      .setTimestamp()
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
     if (action === "add") {
       // Check if the member already has the role
       if (member.roles.cache.has(role.id)) {
-        return interaction.reply({ content: `🎭 | **${user.tag}** already has the role **${role.name}**.`, ephemeral: true });
+        embed.setColor("Yellow").setDescription(`🎭 | **${user.tag}** sudah memiliki peran **${role.name}**.`);
+        return interaction.editReply({ embeds: [embed] });
       } else {
         await member.roles.add(role);
-        return interaction.reply(`🎭 | Assigned role **${role.name}** to **${user.tag}**.`);
+        embed.setColor("Green").setDescription(`🎭 | Peran **${role.name}** telah ditambahkan kepada **${user.tag}**.`);
+        return interaction.editReply({ embeds: [embed] });
       }
     } else if (action === "remove") {
       // Check if the member has the role to remove
       if (!member.roles.cache.has(role.id)) {
-        return interaction.reply({ content: `🎭 | **${user.tag}** does not have the role **${role.name}**.`, ephemeral: true });
+        embed.setColor("Yellow").setDescription(`🎭 | **${user.tag}** tidak memiliki peran **${role.name}**.`);
+        return interaction.editReply({ embeds: [embed] });
       } else {
         await member.roles.remove(role);
-        return interaction.reply(`🎭 | Removed role **${role.name}** from **${user.tag}**.`);
+        embed.setColor("Green").setDescription(`🎭 | Peran **${role.name}** telah dihapus dari **${user.tag}**.`);
+        return interaction.editReply({ embeds: [embed] });
       }
     }
   },

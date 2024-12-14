@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const AutoMod = require("../../database/models/automod"); // Assuming you have the AutoMod model
 const checkPermission = require("../../helpers/checkPermission");
 module.exports = {
@@ -37,8 +37,10 @@ module.exports = {
         .addStringOption((option) => option.setName("status").setDescription("Aktifkan atau nonaktifkan").setRequired(true).addChoices({ name: "Aktifkan", value: "enable" }, { name: "Nonaktifkan", value: "disable" }))
     ),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true }); // Always defer reply before answering
+
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const guildId = interaction.guild.id;
     const subcommand = interaction.options.getSubcommand();
@@ -53,17 +55,21 @@ module.exports = {
       await autoModSettings.save();
     }
 
+    const embed = new EmbedBuilder().setTitle("> AutoMod").setColor("Blue").setThumbnail(interaction.client.user.displayAvatarURL()).setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp();
+
     switch (subcommand) {
       case "antiinvites": {
         // Aktifkan atau nonaktifkan deteksi tautan undangan
         if (status === "enable") {
           autoModSettings.antiInvites = true;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi tautan undangan telah diaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi tautan undangan telah diaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         } else {
           autoModSettings.antiInvites = false;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi tautan undangan telah dinonaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi tautan undangan telah dinonaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         }
       }
 
@@ -72,11 +78,13 @@ module.exports = {
         if (status === "enable") {
           autoModSettings.antiLinks = true;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi tautan telah diaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi tautan telah diaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         } else {
           autoModSettings.antiLinks = false;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi tautan telah dinonaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi tautan telah dinonaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         }
       }
 
@@ -85,11 +93,13 @@ module.exports = {
         if (status === "enable") {
           autoModSettings.antiSpam = true;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi spam telah diaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi spam telah diaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         } else {
           autoModSettings.antiSpam = false;
           await autoModSettings.save();
-          return interaction.reply({ content: "Deteksi spam telah dinonaktifkan.", ephemeral: true });
+          embed.setDescription("Deteksi spam telah dinonaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         }
       }
 
@@ -100,21 +110,25 @@ module.exports = {
 
         if (action === "add") {
           if (whitelist.includes(targetId)) {
-            return interaction.reply({ content: "Pengguna/peran ini sudah ada dalam daftar diperbolehkan.", ephemeral: true });
+            embed.setDescription("Pengguna/peran ini sudah ada dalam daftar diperbolehkan.");
+            return interaction.editReply({ embeds: [embed] });
           }
           whitelist.push(targetId);
           autoModSettings.whitelist = whitelist;
           await autoModSettings.save();
-          return interaction.reply({ content: `Ditambahkan <@${targetId}> ke daftar diperbolehkan.`, ephemeral: true });
+          embed.setDescription(`Ditambahkan <@${targetId}> ke daftar diperbolehkan.`);
+          return interaction.editReply({ embeds: [embed] });
         } else if (action === "remove") {
           const index = whitelist.indexOf(targetId);
           if (index === -1) {
-            return interaction.reply({ content: "Pengguna/peran ini tidak ada dalam daftar diperbolehkan.", ephemeral: true });
+            embed.setDescription("Pengguna/peran ini tidak ada dalam daftar diperbolehkan.");
+            return interaction.editReply({ embeds: [embed] });
           }
           whitelist.splice(index, 1);
           autoModSettings.whitelist = whitelist;
           await autoModSettings.save();
-          return interaction.reply({ content: `Dihapus <@${targetId}> dari daftar diperbolehkan.`, ephemeral: true });
+          embed.setDescription(`Dihapus <@${targetId}> dari daftar diperbolehkan.`);
+          return interaction.editReply({ embeds: [embed] });
         }
       }
 
@@ -122,11 +136,13 @@ module.exports = {
         if (status == "enable") {
           autoModSettings.leveling = true;
           await autoModSettings.save();
-          return interaction.reply({ content: "Sistem leveling telah diaktifkan.", ephemeral: true });
+          embed.setDescription("Sistem leveling telah diaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         } else {
           autoModSettings.leveling = false;
           await autoModSettings.save();
-          return interaction.reply({ content: "Sistem leveling telah dinonaktifkan.", ephemeral: true });
+          embed.setDescription("Sistem leveling telah dinonaktifkan.");
+          return interaction.editReply({ embeds: [embed] });
         }
       }
     }

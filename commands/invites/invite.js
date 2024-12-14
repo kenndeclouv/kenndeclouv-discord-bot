@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const Invite = require("../../database/models/invite"); // Assuming you have an Invite model
+const checkPermission = require("../../helpers/checkPermission");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -34,35 +35,39 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const subcommand = interaction.options.getSubcommand();
     const targetUser = interaction.options.getUser("user");
     const number = interaction.options.getInteger("number");
     const guildId = interaction.guild.id;
-    const isOwner = interaction.guild.ownerId === interaction.user.id;
 
-    // Check for owner-only commands
-    if (!isOwner && ["add", "remove", "reset"].includes(subcommand)) {
-      return interaction.reply({ content: "Hanya pemilik server yang dapat menggunakan perintah ini!", ephemeral: true });
+    if (!checkPermission(interaction.member)) {
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
-
+    const embed = new EmbedBuilder().setColor("Blue").setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp().setThumbnail(interaction.client.user.displayAvatarURL());
     switch (subcommand) {
       case "user": {
         // Check a user's invites
-        const userInvites = await Invite.findOne({ userId: targetUser.id, guildId });
+        const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
         const invitesCount = userInvites ? userInvites.invites : 0;
-        return interaction.reply({ content: `${targetUser.username} memiliki ${invitesCount} undangan.` });
+        const userEmbed = embed.setDescription(`${targetUser.username} memiliki ${invitesCount} undangan.`);
+        return interaction.editReply({ embeds: [userEmbed] });
       }
 
       case "add": {
         // Add invites to a user
-        const userInvites = await Invite.findOneAndUpdate({ userId: targetUser.id, guildId }, { $inc: { invites: number } }, { upsert: true, new: true });
-        return interaction.reply({ content: `Menambahkan ${number} undangan ke ${targetUser.username}. Sekarang mereka memiliki ${userInvites.invites} undangan.` });
+        const userInvites = await Invite.upsert({ userId: targetUser.id, guildId, invites: number }, { returning: true });
+        const addEmbed = embed.setDescription(`Menambahkan ${number} undangan ke ${targetUser.username}. Sekarang mereka memiliki ${userInvites[0].invites} undangan.`);
+        return interaction.editReply({ embeds: [addEmbed] });
       }
 
       case "remove": {
         // Remove invites from a user
-        const userInvites = await Invite.findOneAndUpdate({ userId: targetUser.id, guildId }, { $inc: { invites: -number } }, { upsert: true, new: true });
-        return interaction.reply({ content: `Menghapus ${number} undangan dari ${targetUser.username}. Sekarang mereka memiliki ${userInvites.invites} undangan.` });
+        const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
+        const updatedInvites = userInvites ? userInvites.invites - number : -number;
+        await Invite.upsert({ userId: targetUser.id, guildId, invites: updatedInvites });
+        const removeEmbed = embed.setDescription(`Menghapus ${number} undangan dari ${targetUser.username}. Sekarang mereka memiliki ${updatedInvites} undangan.`);
+        return interaction.editReply({ embeds: [removeEmbed] });
       }
 
       case "leaderboard": {
@@ -73,7 +78,7 @@ module.exports = {
           limit: 10,
         });
         if (topInviters.length === 0) {
-          return interaction.reply({ content: "Belum ada data undangan yang tersedia." });
+          return interaction.editReply({ content: "Belum ada data undangan yang tersedia." });
         }
 
         const leaderboard = topInviters.map((invite, index) => `${index + 1}. <@${invite.userId}> - **${invite.invites} undangan**`).join("\n");
@@ -82,16 +87,17 @@ module.exports = {
           .setTitle("🏆 Papan Peringkat Undangan")
           .setColor("Gold")
           .setDescription(leaderboard)
-          .setFooter({ text: `Top ${topInviters.length} pengundang di ${interaction.guild.name}` })
+          .setFooter({ text: `Top ${topInviters.length} pengundang di ${interaction.guild.name}`, iconURL: interaction.client.user.displayAvatarURL() })
           .setTimestamp();
 
-        return interaction.reply({ embeds: [leaderboardEmbed] });
+        return interaction.editReply({ embeds: [leaderboardEmbed] });
       }
 
       case "reset": {
         // Reset a user's invites
-        await Invite.findOneAndUpdate({ userId: targetUser.id, guildId }, { invites: 0 }, { new: true });
-        return interaction.reply({ content: `Mengatur ulang undangan untuk ${targetUser.username}.` });
+        await Invite.upsert({ userId: targetUser.id, guildId, invites: 0 });
+        const resetEmbed = embed.setDescription(`Mengatur ulang undangan untuk ${targetUser.username}.`);
+        return interaction.editReply({ embeds: [resetEmbed] });
       }
     }
   },

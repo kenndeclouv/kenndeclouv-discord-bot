@@ -7,13 +7,14 @@ module.exports = {
   data: new SlashCommandBuilder().setName("snipe").setDescription("Shows the most recent deleted message in this channel."),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const lastDeletedMessage = messageDeleteEvent.getLastDeletedMessage();
 
     if (!lastDeletedMessage) {
-      return interaction.reply({ content: "There is no deleted message to snipe.", ephemeral: true });
+      return interaction.editReply({ content: "Tidak ada pesan yang dihapus untuk diambil." });
     }
 
     const snipeEmbed = new EmbedBuilder()
@@ -21,8 +22,9 @@ module.exports = {
       .setAuthor({ name: lastDeletedMessage.author.tag, iconURL: lastDeletedMessage.author.displayAvatarURL() })
       .setDescription(lastDeletedMessage.content || "No content")
       .setTimestamp(lastDeletedMessage.createdAt)
+      .setThumbnail(interaction.client.user.displayAvatarURL())
       .setFooter({ text: `Message ID: ${lastDeletedMessage.id}` });
 
-    return interaction.reply({ embeds: [snipeEmbed] });
+    return interaction.editReply({ embeds: [snipeEmbed] });
   },
 };

@@ -17,6 +17,7 @@ module.exports = {
                 { name: 'Bot Latency', value: `${botLatency}ms`, inline: true },
                 { name: 'API Latency', value: `${apiLatency}ms`, inline: true },
             )
+            .setThumbnail(interaction.client.user.displayAvatarURL())
             .setTimestamp();
 
         await interaction.editReply({ content: null, embeds: [embed] });

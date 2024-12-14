@@ -10,9 +10,10 @@ module.exports = {
     .setDescription("Coba mencuri uang dari pengguna lain.")
     .addUserOption((option) => option.setName("target").setDescription("Pengguna yang ingin anda mencuri").setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const targetUser = interaction.options.getUser("target");
     if (targetUser.id === interaction.user.id) {
-      return interaction.reply({ content: `❌ | kamu tidak dapat mencuri diri sendiri!`, ephemeral: true });
+      return interaction.editReply({ content: `❌ | kamu tidak dapat mencuri diri sendiri!` });
     }
 
     const user = await User.findOne({
@@ -23,14 +24,14 @@ module.exports = {
     });
 
     if (!user || !target) {
-      return interaction.reply({ content: `❌ | Entah kamu atau target tidak memiliki akun!`, ephemeral: true });
+      return interaction.editReply({ content: `❌ | Entah kamu atau target tidak memiliki akun!` });
     }
 
     // Cooldown check
-    // const cooldown = checkCooldown(user.lastRob, config.cooldowns.rob);
-    // if (cooldown.remaining) {
-    //   return interaction.reply({ content: `🕒 | kamu dapat mencuri lagi dalam **${cooldown.time}**!`, ephemeral: true });
-    // }
+    const cooldown = checkCooldown(user.lastRob, config.cooldowns.rob);
+    if (cooldown.remaining) {
+      return interaction.editReply({ content: `🕒 | kamu dapat mencuri lagi dalam **${cooldown.time}**!` });
+    }
 
     const shield = await Inventory.findOne({ where: { userId: target.userId, itemName: "🛡️ Shield" } });
     let poison = null;
@@ -54,7 +55,7 @@ module.exports = {
     if (success) {
       // Successful rob
       if (target.cash < robAmount) {
-        return interaction.reply({ content: `❌ | Target tidak memiliki uang yang cukup!`, ephemeral: true });
+        return interaction.editReply({ content: `❌ | Target tidak memiliki uang yang cukup!` });
       }
 
       user.cash += robAmount;
@@ -70,7 +71,7 @@ module.exports = {
         .setDescription(`kamu berhasil mencuri **${robAmount} uang** dari **${targetUser.username}**!`)
         .setTimestamp()
         .setFooter({ text: `sistem`, iconURL: interaction.guild.iconURL() });
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.editReply({ embeds: [embed] });
 
       const embedToTarget = new EmbedBuilder()
         .setColor("Red")
@@ -83,7 +84,7 @@ module.exports = {
     } else {
       // Failed rob, pay the target
       if (user.cash < robAmount) {
-        return interaction.reply({ content: `❌ | kamu tidak memiliki uang yang cukup untuk membayar jika mencuri gagal!`, ephemeral: true });
+        return interaction.editReply({ content: `❌ | kamu tidak memiliki uang yang cukup untuk membayar jika mencuri gagal!` });
       }
       if (poison) {
         const penalty = user.cash;
@@ -106,7 +107,7 @@ module.exports = {
         .setDescription(`❌ | kamu gagal mencuri dari **${targetUser.username}** dan membayar mereka **${poison ? "semua uang kamu" : robAmount + " uang" }** sebagai denda. ${shield ? "Karena target memiliki shield" : ""} ${poison ? "Karena target memiliki poison" : ""}`)
         .setTimestamp()
         .setFooter({ text: `sistem`, iconURL: interaction.guild.iconURL() });
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.editReply({ embeds: [embed] });
 
       const embedToTarget = new EmbedBuilder()
         .setColor("Green")

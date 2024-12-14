@@ -1,8 +1,8 @@
-const { addXp } = require("./system/leveling"); // Mengimpor addXp dari leveling.js
-const AutoMod = require("./database/models/automod"); // Model AutoMod
+const { addXp } = require("./system/leveling");
+const AutoMod = require("./database/models/automod");
 
-const cooldown = new Set(); // Set untuk memonitor cooldown user
-const xpPerMessage = parseInt(process.env.LEVELING_XP, 10) || 15; // XP yang didapatkan per pesan
+const cooldown = new Set();
+const xpPerMessage = parseInt(process.env.LEVELING_XP, 10) || 15;
 
 module.exports = async (message) => {
   if (message.author.bot) return; // Abaikan pesan bot
@@ -14,13 +14,15 @@ module.exports = async (message) => {
 
   // Leveling
   if (autoModSettings.leveling && !cooldown.has(message.author.id)) {
-    await addXp(message.author.id, xpPerMessage, message); // Menambahkan XP
-    cooldown.add(message.author.id); // Tambah user ke cooldown
+    const channel = message.guild.channels.cache.get(process.env.LEVELING_CHANNEL);
+    if (channel) {
+      await addXp(message.author.id, xpPerMessage, message, channel);
+      cooldown.add(message.author.id);
 
-    // Menghapus user dari cooldown setelah 1 menit
-    setTimeout(() => {
-      cooldown.delete(message.author.id);
-    }, process.env.LEVELING_COOLDOWN || 60000);
+      setTimeout(() => {
+        cooldown.delete(message.author.id);
+      }, parseInt(process.env.LEVELING_COOLDOWN, 10) || 60000);
+    }
   }
 
   // Cek anti-invite

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, SelectMenuBuilder } = require("discord.js");
 const checkCooldown = require("../../helpers/checkCooldown");
+const checkPermission = require("../../helpers/checkPermission");
 const { UserPet, Pet } = require("../../database/models");
 const User = require("../../database/models/User");
 const config = require("../../config");
@@ -37,10 +38,17 @@ module.exports = {
     .addSubcommand((subcommand) => subcommand.setName("info").setDescription("Lihat info petmu!"))
     .addSubcommand((subcommand) => subcommand.setName("use").setDescription("Gunakan petmu dan dapatkan bonus!"))
     .addSubcommand((subcommand) => subcommand.setName("gacha").setDescription("Gacha petmuu!"))
-    .addSubcommand((subcommand) => subcommand.setName("sell").setDescription("Jual petmu!")),
+    .addSubcommand((subcommand) => subcommand.setName("sell").setDescription("Jual petmu!"))
+    .addSubcommand((subcommand) => subcommand.setName("leaderboard").setDescription("Lihat papan peringkat petmu!"))
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("editname")
+        .setDescription("Edit nama petmu!")
+        .addStringOption((option) => option.setName("name").setDescription("Nama pet baru").setRequired(true))
+    ),
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
-
+    await interaction.deferReply({ ephemeral: true });
     try {
       // add pet
       if (subcommand === "add") {
@@ -50,18 +58,19 @@ module.exports = {
         const bonusType = interaction.options.getString("bonus_type");
         const bonusValue = interaction.options.getInteger("bonus_value");
 
+        if (!checkPermission(interaction.member)) {
+          return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
+        }
+
         await Pet.create({ name, icon, rarity, bonusType, bonusValue });
-        return interaction.reply({
-          content: `✅ Pet **${name}** berhasil ditambahkan!`,
-          ephemeral: true,
-        });
+        return interaction.editReply({ content: `✅ Pet **${name}** berhasil ditambahkan!` });
       }
 
       // list pet
       if (subcommand === "list") {
         const pets = await Pet.findAll();
         if (!pets.length) {
-          return interaction.reply({ content: "❌ Tidak ada pet di sistem!", ephemeral: true });
+          return interaction.editReply({ content: "❌ Tidak ada pet di sistem!" });
         }
 
         const embed = new EmbedBuilder()
@@ -77,18 +86,20 @@ module.exports = {
           })
         );
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // delete pet
       if (subcommand === "delete") {
         const name = interaction.options.getString("name");
         const deleted = await Pet.destroy({ where: { name } });
-
+        if (!checkPermission(interaction.member)) {
+          return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
+        }
         if (deleted) {
-          return interaction.reply({ content: `✅ Pet **${name}** berhasil dihapus!`, ephemeral: true });
+          return interaction.editReply({ content: `✅ Pet **${name}** berhasil dihapus!` });
         } else {
-          return interaction.reply({ content: "❌ Pet tidak ditemukan!", ephemeral: true });
+          return interaction.editReply({ content: "❌ Pet tidak ditemukan!" });
         }
       }
 
@@ -98,7 +109,7 @@ module.exports = {
         const name = interaction.options.getString("name");
         const existingPet = await UserPet.findOne({ where: { userId, isDead: false }, include: { model: Pet, as: "pet" } });
         if (existingPet) {
-          return interaction.reply({ content: "❌ Kamu sudah punya pet!", ephemeral: true });
+          return interaction.editReply({ content: "❌ Kamu sudah punya pet!" });
         }
 
         const deadPet = await UserPet.findOne({ where: { userId, isDead: true } });
@@ -129,7 +140,7 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: `Rawat dan main bersama pet barumu ya!` });
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // feed pet
@@ -138,11 +149,17 @@ module.exports = {
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
 
         if (!userPet) {
-          return interaction.reply({ content: "❌ Kamu belum punya pet untuk diberi makan!", ephemeral: true });
+          return interaction.editReply({ content: "❌ Kamu belum punya pet untuk diberi makan!" });
         }
         if (userPet.isDead) {
-          return interaction.reply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`", ephemeral: true });
+          return interaction.editReply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`" });
         }
+
+        const petFood = await Inventory.findOne({ where: { UserId: userId, itemName: "🍪 Pet Food" } });
+        if (!petFood) {
+          return interaction.editReply({ content: "❌ Kamu belum memiliki makanan untuk pet!" });
+        }
+        await petFood.destroy();
         userPet.hunger = Math.min(userPet.hunger + 20, 100);
         await userPet.save();
 
@@ -153,7 +170,7 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: `petmu sekarang memiliki tingkat kelaparan ${userPet.hunger}/100` });
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // play pet
@@ -162,10 +179,10 @@ module.exports = {
         // Get user's pet
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
         if (!userPet) {
-          return interaction.reply({ content: "❌ kamu belum memiliki pet!", ephemeral: true });
+          return interaction.editReply({ content: "❌ kamu belum memiliki pet!" });
         }
         if (userPet.isDead) {
-          return interaction.reply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`", ephemeral: true });
+          return interaction.editReply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`" });
         }
         // Update happiness level
         userPet.happiness = Math.min(userPet.happiness + 20, 100);
@@ -178,7 +195,7 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: `petmu sekarang memiliki tingkat kebahagiaan ${userPet.happiness}/100` });
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // info pet
@@ -186,10 +203,10 @@ module.exports = {
         const userId = interaction.user.id;
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
         if (!userPet) {
-          return interaction.reply({ content: "❌ kamu belum memiliki pet!", ephemeral: true });
+          return interaction.editReply({ content: "❌ kamu belum memiliki pet!" });
         }
         if (userPet.isDead) {
-          return interaction.reply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`", ephemeral: true });
+          return interaction.editReply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`" });
         }
         const embed = new EmbedBuilder()
           .setTitle(`> info pet kamuu`)
@@ -198,7 +215,7 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: `sistem akan memberikan bonus ${userPet.pet.bonusType} +${userPet.pet.bonusValue} setiap 15 menit` });
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // use pet
@@ -209,13 +226,13 @@ module.exports = {
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
         const cooldown = checkCooldown(userPet.lastUse, config.cooldowns.pet);
         if (cooldown.remaining) {
-          return interaction.reply({ content: `🕒 | kamu dapat menggunakan pet lagi dalam **${cooldown.time}**!`, ephemeral: true });
+          return interaction.editReply({ content: `🕒 | kamu dapat menggunakan pet lagi dalam **${cooldown.time}**!` });
         }
         if (!userPet) {
-          return interaction.reply({ content: "❌ kamu belum memiliki pet!", ephemeral: true });
+          return interaction.editReply({ content: "❌ kamu belum memiliki pet!" });
         }
         if (userPet.isDead) {
-          return interaction.reply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`", ephemeral: true });
+          return interaction.editReply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`" });
         }
         userPet.level += 1;
         let multiplier = 1;
@@ -242,7 +259,7 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
           .setFooter({ text: `petmu sekarang memiliki level ${userPet.level}` });
 
-        return interaction.reply({ embeds: [embed], ephemeral: true });
+        return interaction.editReply({ embeds: [embed] });
       }
 
       // gacha pet
@@ -252,13 +269,13 @@ module.exports = {
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
 
         if (!userPet) {
-          return interaction.reply({ content: "❌ Kamu belum memiliki pet untuk digacha!", ephemeral: true });
+          return interaction.editReply({ content: "❌ Kamu belum memiliki pet untuk digacha!" });
         }
 
         // const cooldown = checkCooldown(userPet.lastGacha, config.cooldowns.gacha);
-        // if (cooldown.remaining) {
-        //   return interaction.reply({ content: `🕒 | kamu dapat menggacha pet lagi dalam **${cooldown.time}**!`, ephemeral: true });
-        // }
+        if (cooldown.remaining) {
+          return interaction.editReply({ content: `🕒 | kamu dapat menggacha pet lagi dalam **${cooldown.time}**!` });
+        }
 
         const pet = await Pet.findOne({ where: { id: userPet.petId } });
         const rarity = pet.rarity;
@@ -287,7 +304,6 @@ module.exports = {
         await userPet.destroy();
         await UserPet.create({ userId, petId: selectedPet.id, petName: petName, level: newLevel });
 
-        await interaction.deferReply({ ephemeral: true });
         const embed = new EmbedBuilder()
           .setTitle(`> yeyy kamu berhasil menukar pet!`)
           .setDescription(`${selectedPet.icon} **${selectedPet.name}** tingkat ${selectedPet.rarity} dengan level ${newLevel}`)
@@ -298,6 +314,66 @@ module.exports = {
         return await interaction.editReply({ embeds: [embed] });
       }
 
+      if (subcommand === "sell") {
+        const userId = interaction.user.id;
+        const user = await User.findOne({ where: { userId } });
+        const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
+        if (!userPet) {
+          return interaction.editReply({ content: "❌ Kamu belum memiliki pet untuk dijual!" });
+        }
+        // user.cash += userPet.pet.bonusValue;
+        const rarity = userPet.pet.rarity;
+        const rarityValue = {
+          common: 80,
+          rare: 150,
+          epic: 250,
+          legendary: 400,
+        };
+
+        const petValue = rarityValue[rarity] * userPet.level;
+        user.cash += petValue;
+        await userPet.destroy();
+        await user.save();
+        return interaction.editReply({ content: `✅ Pet berhasil dijual! Kamu mendapatkan ${petValue}` });
+      }
+
+      // leaderboard pet
+      if (subcommand === "leaderboard") {
+        const leaderboard = await UserPet.findAll({
+          include: { model: Pet, as: "pet" },
+          order: [
+            [User.sequelize.literal('CASE WHEN pet.rarity = "common" THEN 1 WHEN pet.rarity = "rare" THEN 2 WHEN pet.rarity = "epic" THEN 3 WHEN pet.rarity = "legendary" THEN 4 END'), "DESC"],
+            ["level", "DESC"],
+          ],
+        });
+        const embed = new EmbedBuilder()
+          .setTitle(`> Papan Peringkat Pet`)
+          .setDescription(leaderboard.length ? leaderboard.map((pet, index) => `${index + 1}. <@${pet.userId}> ${pet.pet.icon} ${pet.pet.rarity} ${pet.pet.name}, level ${pet.level}`).join("\n") : "❌ Tidak ada pet dalam papan peringkat.")
+          .setColor("Blue")
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }) })
+          .setTimestamp();
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      // edit name pet
+      if (subcommand === "editname") {
+        const userId = interaction.user.id;
+        const user = await User.findOne({ where: { userId } });
+        const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
+        const newName = interaction.options.getString("name");
+        userPet.petName = newName;
+        await userPet.save();
+        const embed = new EmbedBuilder()
+          .setTitle(`> yeyy nama pet berhasil diubah!`)
+          .setDescription(`${userPet.pet.icon} **${userPet.pet.name}** tingkat ${userPet.pet.rarity} dengan nama ${userPet.petName}`)
+          .setColor("Green")
+          .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
+          .setFooter({ text: `petmu sekarang memiliki nama ${userPet.petName}` })
+          .setTimestamp();
+        return await interaction.editReply({ embeds: [embed] });
+      }
       // Helper function to get a higher rarity
       function getHigherRarity(currentRarity) {
         switch (currentRarity) {
@@ -313,7 +389,7 @@ module.exports = {
       }
     } catch (error) {
       console.error(error);
-      return interaction.reply({ content: "❌ Terjadi kesalahan!", ephemeral: true });
+      return interaction.editReply({ content: "❌ Terjadi kesalahan!" });
     }
   },
 };

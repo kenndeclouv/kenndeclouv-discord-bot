@@ -5,15 +5,17 @@ const Inventory = require("../../database/models/inventory");
 module.exports = {
   data: new SlashCommandBuilder().setName("shop").setDescription("Lihat dan beli item dari toko."),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const user = await User.findOne({ where: { userId: interaction.user.id } });
     if (!user) {
-      return interaction.reply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun.", ephemeral: true });
+      return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
     }
 
     const items = [
       { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
       { name: "🛡️ Shield", price: 200, description: "Perisai yang kokoh untuk melindungi diri dari pencuri." },
       { name: "⚔️ Sword", price: 250, description: "Pedang yang kuat untuk bertarung melawan pencuri." },
+      { name: "🍪 Pet Food", price: 200, description: "Makanan untuk hewan peliharaan kamu." },
     ];
 
     const embed = new EmbedBuilder()
@@ -21,7 +23,7 @@ module.exports = {
       .setTitle("> Toko")
       .setDescription("Selamat datang di toko! Pilih item yang ingin kamu beli:")
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
 
     items.forEach((item) => {
       embed.addFields({ name: `${item.name}`, value: `Harga: **${item.price}** uang\n${item.description}`, inline: true });
@@ -40,7 +42,7 @@ module.exports = {
         )
     );
 
-    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+    await interaction.editReply({ embeds: [embed], components: [row] });
 
     const filter = (i) => i.user.id === interaction.user.id;
     const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });

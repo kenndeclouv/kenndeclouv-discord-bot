@@ -23,8 +23,9 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setColor("Red")
         .setTitle("> Member dikeluarkan")
-        .setDescription(`🔨 | **${user.tag}** telah dikeluarkan dari server.`)
-        .setTimestamp(new Date())
+        .setDescription(`**${user.tag}** telah dikeluarkan dari server oleh **${interaction.user.tag}** melalui command.`)
+        .setThumbnail(interaction.client.user.displayAvatarURL())
+        .setTimestamp()
         .setFooter({ text: `Dikeluarkan oleh ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() });
       return interaction.reply({ embeds: [embed] });
     } else {

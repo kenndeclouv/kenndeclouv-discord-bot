@@ -48,6 +48,7 @@ module.exports = {
               { name: 'UOB', value: 'uob' }
             ))),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const subcommand = interaction.options.getSubcommand();
     const bankType = interaction.options.getString('bank');
     const userId = interaction.user.id;
@@ -56,7 +57,7 @@ module.exports = {
       // Check if user already has an account
       const existingUser = await User.findOne({ where: { userId } });
       if (existingUser) {
-        return interaction.reply({ content: 'kamu sudah memiliki akun.', ephemeral: true });
+        return interaction.editReply({ content: 'kamu sudah memiliki akun.' });
       }
 
       // Create new user account
@@ -68,15 +69,15 @@ module.exports = {
         .setDescription(`Akun berhasil dibuat dengan jenis bank: **${bankType.toUpperCase()}**`)
         .setThumbnail(interaction.user.displayAvatarURL())
         .setTimestamp()
-        .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+        .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+      return interaction.editReply({ embeds: [embed] });
     }
 
     if (subcommand === 'edit') {
       // Check if user has an account
       const existingUser = await User.findOne({ where: { userId } });
       if (!existingUser) {
-        return interaction.reply({ content: 'kamu belum memiliki akun gunakan `/account create` untuk membuat akun.', ephemeral: true });
+        return interaction.editReply({ content: 'kamu belum memiliki akun gunakan `/account create` untuk membuat akun.' });
 
       }
 
@@ -89,8 +90,8 @@ module.exports = {
         .setDescription(`Jenis bank berhasil diubah menjadi: **${bankType.toUpperCase()}**`)
         .setThumbnail(interaction.user.displayAvatarURL())
         .setTimestamp()
-        .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+        .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+      return interaction.editReply({ embeds: [embed] });
     }
   }
 };

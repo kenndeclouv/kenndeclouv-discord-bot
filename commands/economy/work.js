@@ -6,17 +6,18 @@ const checkCooldown = require("../../helpers/checkCooldown");
 module.exports = {
   data: new SlashCommandBuilder().setName("work").setDescription("Bekerja untuk mendapatkan uang."),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     let user = await User.findOne({
       where: { userId: interaction.user.id },
     });
     if (!user) {
-      return interaction.reply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun.", ephemeral: true });
+      return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
     }
 
     // Cooldown check
     const cooldown = checkCooldown(user.lastWork, config.cooldowns.work);
     if (cooldown.remaining) {
-      return interaction.reply({ content: `🕒 | kamu dapat bekerja lagi dalam **${cooldown.time}**!`, ephemeral: true });
+      return interaction.editReply({ content: `🕒 | kamu dapat bekerja lagi dalam **${cooldown.time}**!` });
     }
 
     const randomCash = Math.floor((Math.random() * 101 + 50) * 0.5 * (user.careerMastered || 1));
@@ -44,7 +45,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`${interaction.user.username} bekerja keras dan mendapatkan **${randomCash} uang**!${payTax ? ` tapi harus membayar pajak sebesar **${taxAmount} uang**.` : ''}${workedMaximally ? ` dan level karir anda naik **${user.careerMastered}**!` : ''}`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed] });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

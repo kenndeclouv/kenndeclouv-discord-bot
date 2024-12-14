@@ -6,17 +6,18 @@ const checkCooldown = require("../../helpers/checkCooldown");
 module.exports = {
   data: new SlashCommandBuilder().setName("lootbox").setDescription("Buka kotak hadiah untuk mendapatkan hadiah acak."),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     let user = await User.findOne({
       where: { userId: interaction.user.id },
     });
     if (!user) {
-      return interaction.reply({ content: 'kamu belum memiliki akun gunakan `/account create` untuk membuat akun.', ephemeral: true });
+      return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
     }
 
     // Cooldown check
     const cooldown = checkCooldown(user.lastLootbox, config.cooldowns.lootbox);
     if (cooldown.remaining) {
-      return interaction.reply({ content: `🕒 | kamu dapat membuka kotak hadiah lainnya dalam **${cooldown.time}**!`, ephemeral: true });
+      return interaction.editReply({ content: `🕒 | kamu dapat membuka kotak hadiah lainnya dalam **${cooldown.time}**!` });
     }
 
     // Randomize lootbox reward between 100 and 500
@@ -31,7 +32,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`kamu membuka kotak hadiah dan menerima **${randomReward} uang**!`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

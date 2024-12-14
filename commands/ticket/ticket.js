@@ -34,8 +34,9 @@ module.exports = {
     .addSubcommand((subcommand) => subcommand.setName("transcript").setDescription("Dapatkan transkrip dari tiket.")),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const { options } = interaction;
     const subcommand = options.getSubcommand();
@@ -61,13 +62,18 @@ module.exports = {
       await ticket.save();
 
       // Buat embed pembuatan tiket
-      const ticketEmbed = new EmbedBuilder().setColor("#0099ff").setTitle(title).setDescription(description).setFooter({ text: "Klik tombol di bawah untuk membuat tiket." });
+      const ticketEmbed = new EmbedBuilder()
+        .setColor("#0099ff")
+        .setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
+        .setTitle(title)
+        .setDescription(description)
+        .setFooter({ text: "Klik tombol di bawah untuk membuat tiket." });
 
       const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("create_ticket").setLabel("Buat Tiket").setStyle(ButtonStyle.Primary));
 
       // Kirim embed di channel yang ditentukan
       await channel.send({ embeds: [ticketEmbed], components: [row] });
-      await interaction.reply(`🎫 | Sistem tiket berhasil diatur di ${channel}. Judul: **${title}**.`);
+      await interaction.editReply(`🎫 | Sistem tiket berhasil diatur di ${channel}. Judul: **${title}**.`);
     } else if (subcommand === "remove") {
       const user = options.getUser("user");
       const member = await interaction.guild.members.fetch(user.id);
@@ -75,9 +81,9 @@ module.exports = {
       // Periksa apakah anggota ada di channel tiket
       if (interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
         await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: false });
-        await interaction.reply(`❌ | **${user.tag}** telah dihapus dari channel tiket.`);
+        await interaction.editReply(`❌ | **${user.tag}** telah dihapus dari channel tiket.`);
       } else {
-        await interaction.reply(`⚠️ | **${user.tag}** tidak ada di channel tiket.`);
+        await interaction.editReply(`⚠️ | **${user.tag}** tidak ada di channel tiket.`);
       }
     } else if (subcommand === "add") {
       const user = options.getUser("user");
@@ -86,15 +92,15 @@ module.exports = {
       // Periksa apakah anggota ada di channel tiket
       if (!interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
         await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: true });
-        await interaction.reply(`✅ | **${user.tag}** telah ditambahkan ke channel tiket.`);
+        await interaction.editReply(`✅ | **${user.tag}** telah ditambahkan ke channel tiket.`);
       } else {
-        await interaction.reply(`⚠️ | **${user.tag}** sudah ada di channel tiket.`);
+        await interaction.editReply(`⚠️ | **${user.tag}** sudah ada di channel tiket.`);
       }
     } else if (subcommand === "close") {
       // Tutup tiket
       const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
       if (!ticket) {
-        return interaction.reply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
+        return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
       }
 
       // Ambil channel log dan transkrip dari database
@@ -116,7 +122,7 @@ module.exports = {
       }
 
       // Hapus tiket dari database
-      await Ticket.deleteOne({ where: { channelId: interaction.channel.id } });
+      await Ticket.destroy({ where: { channelId: interaction.channel.id } });
 
       // Hapus channel tiket
       await interaction.channel.delete();
@@ -124,7 +130,7 @@ module.exports = {
       // Ambil tiket dari database
       const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
       if (!ticket) {
-        return interaction.reply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
+        return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
       }
 
       // Buat transkrip dari tiket
@@ -137,7 +143,7 @@ module.exports = {
         files: [transcript],
       });
 
-      await interaction.reply(`📜 | Transkrip untuk tiket ini telah dikirim ke ${transcriptChannel}.`);
+      await interaction.editReply(`📜 | Transkrip untuk tiket ini telah dikirim ke ${transcriptChannel}.`);
     }
   },
 };

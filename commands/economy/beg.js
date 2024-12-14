@@ -6,6 +6,7 @@ const checkCooldown = require("../../helpers/checkCooldown");
 module.exports = {
   data: new SlashCommandBuilder().setName("beg").setDescription("Minta uang dari pengguna lain."),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     let user = await User.findOne({
       where: { userId: interaction.user.id },
     });
@@ -31,7 +32,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`kamu meminta dan menerima **${randomCash} uang**!`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    return interaction.editReply({ embeds: [embed] });
   },
 };

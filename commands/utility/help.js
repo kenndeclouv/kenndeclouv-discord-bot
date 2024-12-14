@@ -9,50 +9,60 @@ module.exports = {
     const embeds = [];
 
     // Create home page embed with bot description
-    const homeEmbed = new EmbedBuilder()
-      .setColor("#0099ff")
-      .setTitle("Selamat datang di menu bantuan bot!")
-      .setDescription("Bot ini menyediakan berbagai perintah. Gunakan tombol di bawah untuk melihat daftar perintah dalam setiap kategori. \n\n**Perintah yang tersedia:**")
-      .setThumbnail(interaction.client.user.displayAvatarURL())
-      .setFooter({ text: "Klik tombol di bawah untuk melihat perintah dalam kategori ini", iconURL: interaction.client.user.displayAvatarURL() });
+    const homeEmbed = new EmbedBuilder().setColor("#0099ff").setTitle("Selamat datang di menu bantuan bot!").setDescription("Bot ini menyediakan berbagai perintah. Gunakan tombol di bawah untuk melihat daftar perintah dalam setiap kategori. \n\n**Perintah yang tersedia:**").setThumbnail(interaction.client.user.displayAvatarURL()).setFooter({ text: "Klik tombol di bawah untuk melihat perintah dalam kategori ini", iconURL: interaction.client.user.displayAvatarURL() });
     embeds.push(homeEmbed);
 
     for (const folder of commandFolders) {
-      if (folder !== "leveling" && folder !== "economy" && folder !== "pet") continue;
-
+      // if (folder !== "leveling" && folder !== "economy" && folder !== "pet") continue;
       const commandFiles = fs.readdirSync(path.join(__dirname, "..", folder)).filter((file) => file.endsWith(".js"));
-      const embed = new EmbedBuilder()
-        .setColor("#0099ff")
-        .setTitle(`> Kategori ${folder}`)
-        .setThumbnail(interaction.client.user.displayAvatarURL())
-        .setDescription(`Daftar perintah dalam kategori ${folder}`)
-        .setFooter({ text: "Klik tombol di bawah untuk melihat perintah dalam kategori ini", iconURL: interaction.client.user.displayAvatarURL() });
+      const embed = new EmbedBuilder().setColor("#0099ff").setTitle(`> Kategori ${folder}`).setThumbnail(interaction.client.user.displayAvatarURL()).setDescription(`Daftar perintah dalam kategori ${folder}`).setFooter({ text: "Klik tombol di bawah untuk melihat perintah dalam kategori ini", iconURL: interaction.client.user.displayAvatarURL() });
+
+      let fieldCount = 0; // Counter for fields added to the embed
 
       for (const file of commandFiles) {
         const command = require(path.join(__dirname, "..", folder, file));
-        if (command.data.options) {
-          command.data.options.forEach((option) => {
-            embed.addFields({
-              name: `**\`/${command.data.name} ${option.name}\`**`,
-              value: option.description || "Tidak ada deskripsi",
+        if (fieldCount < 25) {
+          // Cek jika kita bisa menambahkan lebih banyak fields
+          if (command.data.options) {
+            command.data.options.forEach((option) => {
+              // Pengecekan untuk membedakan subcommand dan opsi
+              if (option.type === "SUB_COMMAND" || option.type === "SUB_COMMAND_GROUP") {
+                // Ini adalah subcommand
+                if (fieldCount < 25) {
+                  embed.addFields({
+                    name: `**\`/${command.data.name} ${option.name}\`**`,
+                    value: `Subcommand: ${option.description || "Tidak ada deskripsi"}`,
+                  });
+                  fieldCount++;
+                }
+              } else {
+                // Ini adalah opsi biasa
+                if (fieldCount < 25) {
+                  embed.addFields({
+                    name: `**\`/${command.data.name} ${option.name}\`**`,
+                    value: option.description || "Tidak ada deskripsi",
+                  });
+                  fieldCount++;
+                }
+              }
             });
-          });
-        } else {
-          embed.addFields({
-            name: `**\`/${command.data.name}\`**`,
-            value: command.data.description || "Tidak ada deskripsi",
-          });
+          } else {
+            // Perintah utama tanpa opsi
+            if (fieldCount < 25) {
+              embed.addFields({
+                name: `**\`/${command.data.name}\`**`,
+                value: command.data.description || "Tidak ada deskripsi",
+              });
+              fieldCount++;
+            }
+          }
         }
       }
 
       embeds.push(embed);
     }
 
-    const buttons = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId("previous").setLabel("Sebelumnya").setStyle(ButtonStyle.Primary),
-      new ButtonBuilder().setCustomId("home").setLabel("Beranda").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId("next").setLabel("Berikutnya").setStyle(ButtonStyle.Primary)
-    );
+    const buttons = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("previous").setLabel("Sebelumnya").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("home").setLabel("Beranda").setStyle(ButtonStyle.Secondary), new ButtonBuilder().setCustomId("next").setLabel("Berikutnya").setStyle(ButtonStyle.Primary));
 
     let currentPage = 0;
     const message = await interaction.reply({

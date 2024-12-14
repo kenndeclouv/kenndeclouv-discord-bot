@@ -27,8 +27,9 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const subcommand = interaction.options.getSubcommand();
     const guildId = interaction.guild.id;
@@ -43,23 +44,23 @@ module.exports = {
           channelId: channel.id,
         });
         await suggestionSetup.save();
-        await interaction.reply(`Suggestion channel set to ${channel}.`);
+        await interaction.editReply(`Channel saran berhasil diatur ke ${channel}.`);
       } else {
         suggestionSetup.channelId = channel.id;
         await suggestionSetup.save();
-        await interaction.reply(`Suggestion channel updated to ${channel}.`);
+        await interaction.editReply(`Channel saran berhasil diupdate ke ${channel}.`);
       }
     } else if (subcommand === "accept" || subcommand === "decline") {
       const messageId = interaction.options.getString("message_id");
       const suggestionData = await Suggestion.findOne({ guildId });
 
       if (!suggestionData) {
-        return interaction.reply("No suggestions found.");
+        return interaction.editReply("Tidak ada saran yang ditemukan.");
       }
 
       const suggestion = suggestionData.suggestions.find((s) => s.messageId === messageId);
       if (!suggestion) {
-        return interaction.reply("Suggestion not found.");
+        return interaction.editReply("Saran tidak ditemukan.");
       }
 
       suggestion.accepted = subcommand === "accept";
@@ -72,7 +73,7 @@ module.exports = {
         .setColor(subcommand === "accept" ? Colors.Green : Colors.Red); // Use color constants
       await message.edit({ embeds: [embed] });
 
-      await interaction.reply(`Suggestion ${subcommand === "accept" ? "accepted" : "declined"}.`);
+      await interaction.editReply(`Saran ${subcommand === "accept" ? "diterima" : "ditolak"}.`);
     }
   },
 };

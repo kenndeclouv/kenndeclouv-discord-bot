@@ -1,5 +1,5 @@
 const { sendAddRolesMessage, handleAddRolesInteraction } = require("./startup/addroles");
-const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder } = require("discord.js");
+const { Collection, REST, Routes, EmbedBuilder } = require("discord.js");
 const { sendHomeMessage, handleHomeInteraction } = require("./startup/home");
 const { sendRoleInfoMessage } = require("./startup/roleinfo");
 const { sendRulesMessage } = require("./startup/rules");
@@ -7,13 +7,12 @@ const sequelize = require("./database/sequelize");
 const { UserPet } = require("./database/models");
 const automodLogic = require("./automodLogic");
 const User = require("./database/models/User");
+const client = require("./client");
 const figlet = require("figlet");
 const path = require("path");
 require("dotenv").config();
 const fs = require("fs");
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
-});
+
 // GREETING
 figlet("KENNDECLOUV's BOT", "Larry 3D", (err, data) => {
   if (err) {

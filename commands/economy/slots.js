@@ -7,13 +7,14 @@ module.exports = {
     .setDescription('Mainkan mesin slot dan coba keberuntungan anda.')
     .addIntegerOption(option => option.setName('bet').setDescription('Jumlah untuk bertaruh').setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const bet = interaction.options.getInteger('bet');
     const user = await User.findOne({ 
         where: { userId: interaction.user.id } 
       });
 
     if (!user || user.cash < bet) {
-      return interaction.reply({ content: 'kamu tidak memiliki uang yang cukup untuk bertaruh!', ephemeral: true });
+      return interaction.editReply({ content: 'kamu tidak memiliki uang yang cukup untuk bertaruh!' });
     }
 
     const slotResults = ['🍒', '🍋', '🍊'];
@@ -29,8 +30,8 @@ module.exports = {
         .setThumbnail(interaction.user.displayAvatarURL())
         .setDescription(`${interaction.user.username} menang! **${roll.join(' | ')}** ${interaction.user.username} tripled taruhan ${interaction.user.username} dan mendapatkan **${bet * 3} uang**!`)
         .setTimestamp()
-        .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-      return interaction.reply({ embeds: [embed]});
+        .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+      return interaction.editReply({ embeds: [embed]});
     } else {
       user.cash -= bet; // Lose the bet
       await user.save();
@@ -41,8 +42,8 @@ module.exports = {
         .setThumbnail(interaction.user.displayAvatarURL())
         .setDescription(`❌ | ${interaction.user.username} kalah! **${roll.join(' | ')}** kamu kehilangan **${bet} uang**.`)
         .setTimestamp()
-        .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-      return interaction.reply({ embeds: [embed]});
+        .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+      return interaction.editReply({ embeds: [embed]});
     }
   }
 };

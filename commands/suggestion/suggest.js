@@ -9,14 +9,15 @@ module.exports = {
     .addStringOption((option) => option.setName("suggestion").setDescription("Your suggestion").setRequired(true)),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const suggestionText = interaction.options.getString("suggestion");
     const suggestionData = await Suggestion.findOne({ guildId: interaction.guild.id });
 
     if (!suggestionData) {
-      return interaction.reply("Suggestion channel not set up. Use `/suggestion setup` first.");
+      return interaction.editReply("Channel saran belum diatur. Gunakan `/suggestion setup` terlebih dahulu.");
     }
 
     const channel = await interaction.guild.channels.fetch(suggestionData.channelId);
@@ -33,6 +34,6 @@ module.exports = {
     await suggestionData.save();
 
     // Acknowledge the interaction
-    await interaction.reply("Your suggestion has been sent!");
+    await interaction.editReply("✅ Saran berhasil dikirim!");
   },
 };

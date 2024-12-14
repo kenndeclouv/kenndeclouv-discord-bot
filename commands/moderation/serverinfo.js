@@ -5,8 +5,9 @@ module.exports = {
   data: new SlashCommandBuilder().setName("serverinfo").setDescription("Displays information about the server."),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const guild = interaction.guild;
 
@@ -34,6 +35,6 @@ module.exports = {
       .setFooter({ text: `ID: ${guild.id}` })
       .setTimestamp();
 
-    return interaction.reply({ embeds: [serverInfoEmbed], ephemeral: false });
+    return interaction.editReply({ embeds: [serverInfoEmbed] });
   },
 };

@@ -10,6 +10,7 @@ module.exports = {
     .addUserOption((option) => option.setName("target").setDescription("User yang ingin di hack").setRequired(true)),
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     try {
       const targetUser = interaction.options.getUser("target");
       const user = await User.findOne({ where: { userId: interaction.user.id } });
@@ -17,42 +18,37 @@ module.exports = {
 
       // cek izin
       if (!interaction.member.permissions.has(PermissionsBitField.Flags.SendMessages)) {
-        return interaction.reply({
+        return interaction.editReply({
           content: "kamu tidak memiliki izin untuk mengirim pesan.",
-          ephemeral: true,
         });
       }
       // Cooldown check
       const cooldown = checkCooldown(user.lastHack, config.cooldowns.hack);
       if (cooldown.remaining) {
-        return interaction.reply({ content: `🕒 | kamu dapat meng-hack lainnya dalam **${cooldown.time}**!`, ephemeral: true });
+        return interaction.editReply({ content: `🕒 | kamu dapat meng-hack lainnya dalam **${cooldown.time}**!` });
       }
       // validasi data user
       if (!user || !target) {
-        return interaction.reply({
+        return interaction.editReply({
           content: `❌ | Pengguna atau target tidak ditemukan dalam sistem.`,
-          ephemeral: true,
         });
       }
 
       if (targetUser.id === interaction.user.id) {
-        return interaction.reply({
+        return interaction.editReply({
           content: `❌ | kamu tidak dapat meng-hack diri sendiri!`,
-          ephemeral: true,
         });
       }
 
       if (target.bank <= 0) {
-        return interaction.reply({
+        return interaction.editReply({
           content: `❌ | Target tidak memiliki uang di bank untuk di-hack.`,
-          ephemeral: true,
         });
       }
 
       if (user.bank <= 20) {
-        return interaction.reply({
+        return interaction.editReply({
           content: `❌ | kamu tidak memiliki uang di bank untuk meng-hack.`,
-          ephemeral: true,
         });
       }
 
@@ -65,7 +61,7 @@ module.exports = {
         .setTimestamp(new Date());
 
       // kirim embed fake hack
-      await interaction.reply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed] });
 
       // simulasi hasil hack
       setTimeout(async () => {
@@ -92,7 +88,7 @@ module.exports = {
               iconURL: interaction.user.displayAvatarURL(),
             });
 
-          await interaction.followUp({ embeds: [successEmbed], ephemeral: true });
+          await interaction.editReply({ embeds: [successEmbed] });
         } else {
           // penalti jika gagal
           const penalty = Math.floor(Math.random() * 20) + 1;
@@ -114,14 +110,13 @@ module.exports = {
               iconURL: interaction.user.displayAvatarURL(),
             });
 
-          await interaction.followUp({ embeds: [failureEmbed], ephemeral: true });
+          await interaction.editReply({ embeds: [failureEmbed] });
         }
       }, 5000); // delay 5 detik
     } catch (error) {
       console.error(error);
-      interaction.reply({
+      interaction.editReply({
         content: "❌ | Terjadi kesalahan saat mencoba menjalankan perintah ini.",
-        ephemeral: true,
       });
     }
   },

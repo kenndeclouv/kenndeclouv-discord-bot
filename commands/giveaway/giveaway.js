@@ -133,7 +133,7 @@ async function startGiveaway(interaction) {
     .setTitle("🎉 Giveaway! 🎉")
     .setDescription(`Hadiah: ${prize}\nPemenang: ${winners}\nBerakhir dalam: ${durationInput}\nReact dengan 🎉 untuk ikut!`)
     .setColor("Random")
-    .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
+    .setThumbnail(interaction.client.user.displayAvatarURL())
     .setImage("https://i.ibb.co.com/Y0C1Zcw/tenor.gif")
     .setFooter({ text: `Berakhir pada: ${new Date(endTime).toLocaleString()}` });
 
@@ -312,7 +312,8 @@ async function endGiveawayById(messageId, guild, interaction) {
       .setColor("Red")
       .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
       .setImage("https://i.ibb.co.com/Y0C1Zcw/tenor.gif")
-      .setTimestamp();
+      .setTimestamp()
+      .setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() });
     await message.channel.send({ embeds: [noParticipantsEmbed] });
     giveaway.ended = true;
     await giveaway.save();
@@ -351,7 +352,8 @@ async function endGiveawayById(messageId, guild, interaction) {
         .setColor("Green")
         .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
         .setImage("https://i.ibb.co.com/Y0C1Zcw/tenor.gif")
-        .setTimestamp();
+        .setTimestamp()
+        .setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() });
       await winner.send({ embeds: [embed] });
     }
 
@@ -361,7 +363,8 @@ async function endGiveawayById(messageId, guild, interaction) {
       .setColor("Green")
       .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
       .setImage("https://i.ibb.co.com/Y0C1Zcw/tenor.gif")
-      .setTimestamp();
+      .setTimestamp()
+      .setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() });
 
     await message.channel.send({ embeds: [winnerEmbed] });
 

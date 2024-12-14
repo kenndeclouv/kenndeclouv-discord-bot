@@ -6,6 +6,7 @@ module.exports = {
     .setName('cash')
     .setDescription('Cek saldo tunai anda.'),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const user = await User.findOne({ 
         where: { userId: interaction.user.id } 
       });
@@ -19,7 +20,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`**${interaction.user.username}**, kamu memiliki **${user.cash} uang tunai!**`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    return interaction.editReply({ embeds: [embed] });
   }
 };

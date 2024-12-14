@@ -8,6 +8,7 @@ module.exports = {
     .addUserOption((option) => option.setName("target").setDescription("Pengguna untuk mentransfer uang").setRequired(true))
     .addIntegerOption((option) => option.setName("amount").setDescription("Jumlah uang untuk mentransfer").setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const target = interaction.options.getUser("target");
     const amount = interaction.options.getInteger("amount");
 
@@ -19,20 +20,20 @@ module.exports = {
     });
 
     if (!giver || giver.bank < amount) {
-      return interaction.reply({ content: "kamu tidak memiliki uang di bank yang cukup untuk mentransfer.", ephemeral: true });
+      return interaction.editReply({ content: "kamu tidak memiliki uang di bank yang cukup untuk mentransfer." });
     }
     if (!receiver) {
-      return interaction.reply({ content: "Pengguna yang dituju tidak memiliki akun. gunakan `/account create` untuk membuat akun.", ephemeral: true });
+      return interaction.editReply({ content: "Pengguna yang dituju tidak memiliki akun. gunakan `/account create` untuk membuat akun." });
     }
     if (giver.userId === receiver.userId) {
-      return interaction.reply({ content: "kamu tidak dapat mentransfer uang kepada diri sendiri.", ephemeral: true });
+      return interaction.editReply({ content: "kamu tidak dapat mentransfer uang kepada diri sendiri." });
     }
     let fee = 0;
     if (giver.bankType !== receiver.bankType) {
       fee = Math.floor(amount * 0.05);
     }
     if (giver.bank < amount + fee) {
-      return interaction.reply({ content: "kamu tidak memiliki uang di bank yang cukup untuk menutupi biaya transfer.", ephemeral: true });
+      return interaction.editReply({ content: "kamu tidak memiliki uang di bank yang cukup untuk menutupi biaya transfer." });
     }
     giver.bank -= amount + fee;
     receiver.bank += amount;
@@ -48,7 +49,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`kamu akan mentransfer **${amount} uang** ke **${target.username}** dengan biaya **${fee} uang**. Apakah kamu ingin melanjutkan?`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
 
     const row = new ActionRowBuilder()
       .addComponents(
@@ -62,7 +63,7 @@ module.exports = {
           .setStyle(ButtonStyle.Danger)
       );
 
-    await interaction.reply({ embeds: [confirmEmbed], components: [row], ephemeral: true });
+    await interaction.editReply({ embeds: [confirmEmbed], components: [row] });
 
     const filter = i => i.user.id === interaction.user.id;
     const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
@@ -75,8 +76,8 @@ module.exports = {
           .setThumbnail(interaction.user.displayAvatarURL())
           .setDescription(`kamu berhasil mentransfer **${amount} uang** ke **${target.username}** dengan biaya **${fee} uang**!`)
           .setTimestamp()
-          .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-        await i.update({ embeds: [embed], components: [], ephemeral: true });
+          .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+        await i.update({ embeds: [embed], components: [] });
 
         const targetEmbed = new EmbedBuilder()
           .setColor("Green")
@@ -87,13 +88,13 @@ module.exports = {
           .setFooter({ text: `Diberikan oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
         await target.send({ embeds: [targetEmbed] });
       } else if (i.customId === 'cancel') {
-        await i.update({ content: 'Transfer dibatalkan.', components: [], ephemeral: true });
+        await i.update({ content: 'Transfer dibatalkan.', components: [] });
       }
     });
 
     collector.on('end', collected => {
       if (collected.size === 0) {
-        interaction.editReply({ content: 'Waktu habis. Transfer dibatalkan.', components: [], ephemeral: true });
+        interaction.editReply({ content: 'Waktu habis. Transfer dibatalkan.', components: [] });
       }
     });
   },

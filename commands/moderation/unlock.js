@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const checkPermission = require("../../helpers/checkPermission");
 module.exports = {
   data: new SlashCommandBuilder()
@@ -6,16 +6,24 @@ module.exports = {
     .setDescription("Unlocks a channel to allow messages.")
     .addChannelOption((option) => option.setName("channel").setDescription("Channel to unlock").setRequired(false)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const channel = interaction.options.getChannel("channel") || interaction.channel;
 
     if (!interaction.member.permissions.has("MANAGE_CHANNELS")) {
-      return interaction.reply({ content: "You do not have permission to unlock channels.", ephemeral: true });
+      return interaction.editReply({ content: "Kamu tidak memiliki izin untuk membuka channel." });
     }
 
     await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, { SEND_MESSAGES: true });
-    return interaction.reply(`🔓 | Unlocked **${channel.name}**.`);
+    const embed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle(`> Unlock channel`)
+      .setDescription(`Channel **${channel.name}** telah dibuka.`)
+      .setThumbnail(interaction.client.user.displayAvatarURL())
+      .setTimestamp()
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    return interaction.editReply({ embeds: [embed] });
   },
 };

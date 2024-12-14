@@ -7,6 +7,7 @@ module.exports = {
     .setDescription('Simpan uang tunai anda ke bank.')
     .addIntegerOption(option => option.setName('amount').setDescription('Jumlah untuk menyimpan').setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const amount = interaction.options.getInteger('amount');
     const user = await User.findOne({ 
         where: { userId: interaction.user.id } 
@@ -26,7 +27,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`kamu menyimpan **${amount} uang** ke bank!`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    return interaction.editReply({ embeds: [embed] });
   }
 };

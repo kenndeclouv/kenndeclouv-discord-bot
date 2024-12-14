@@ -1,22 +1,27 @@
-const { SlashCommandBuilder } = require("discord.js");
-const checkPermission = require("../../helpers/checkPermission");
+require("dotenv").config();
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("report")
-    .setDescription("Reports a user to moderators.")
-    .addUserOption((option) => option.setName("user").setDescription("User to report").setRequired(true))
-    .addStringOption((option) => option.setName("reason").setDescription("Reason for the report").setRequired(true)),
+    .setDescription("Melaporkan pengguna kepada moderator.")
+    .addUserOption((option) => option.setName("user").setDescription("Pengguna yang dilaporkan").setRequired(true))
+    .addStringOption((option) => option.setName("reason").setDescription("Alasan untuk laporan").setRequired(true)),
   async execute(interaction) {
-    if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
-    }
+    await interaction.deferReply({ ephemeral: true });
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason");
 
-    const reportChannel = interaction.guild.channels.cache.find((channel) => channel.name === "reports");
-    if (!reportChannel) return interaction.reply({ content: "Report channel does not exist.", ephemeral: true });
+    const reportChannel = interaction.guild.channels.cache.get(process.env.REPORT_CHANNEL_ID);
+    if (!reportChannel) return interaction.editReply({ content: "Saluran laporan tidak ada." });
 
-    await reportChannel.send(`🚨 Reported User: **${user.tag}**\nReason: ${reason}\nReported by: **${interaction.user.tag}**`);
-    return interaction.reply(`✅ | Reported **${user.tag}**. Thank you for reporting.`);
+    const embed = new EmbedBuilder()
+      .setColor("Red")
+      .setTitle("> Report")
+      .setDescription(`**${user.tag}** telah dilaporkan oleh **${interaction.user.tag}** dengan alasan: ${reason}`)
+      .setThumbnail(interaction.client.user.displayAvatarURL())
+      .setTimestamp()
+      .setFooter({ text: `Dilaporkan oleh ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() });
+    await reportChannel.send({ embeds: [embed] });
+    return interaction.editReply(`✅ | Telah melaporkan **${user.tag}**. Terima kasih telah melaporkan.`);
   },
 };

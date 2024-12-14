@@ -5,15 +5,16 @@ const Inventory = require("../../database/models/inventory");
 module.exports = {
   data: new SlashCommandBuilder().setName("inventory").setDescription("Lihat semua item di inventaris kamu."),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const user = await User.findOne({ where: { userId: interaction.user.id } });
     if (!user) {
-      return interaction.reply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun.", ephemeral: true });
+      return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
     }
 
     const inventoryItems = await Inventory.findAll({ where: { userId: user.userId } });
 
     if (inventoryItems.length === 0) {
-      return interaction.reply({ content: "Inventaris kamu kosong.", ephemeral: true });
+      return interaction.editReply({ content: "Inventaris kamu kosong." });
     }
 
     const itemCounts = inventoryItems.reduce((acc, item) => {
@@ -26,12 +27,12 @@ module.exports = {
       .setTitle("> Inventaris kamu")
       .setDescription("Item yang kamu miliki:")
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
 
     Object.entries(itemCounts).forEach(([itemName, count]) => {
       embed.addFields({ name: `${itemName} (${count})`, value: `kamu memiliki item ini sebanyak ${count} barang`, inline: true });
     });
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

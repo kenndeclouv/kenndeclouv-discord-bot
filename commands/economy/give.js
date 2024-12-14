@@ -8,6 +8,7 @@ module.exports = {
     .addUserOption((option) => option.setName("target").setDescription("Pengguna untuk memberikan uang").setRequired(true))
     .addIntegerOption((option) => option.setName("amount").setDescription("Jumlah uang untuk memberikan").setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const target = interaction.options.getUser("target");
     const amount = interaction.options.getInteger("amount");
 
@@ -35,7 +36,7 @@ module.exports = {
       .setThumbnail(interaction.user.displayAvatarURL())
       .setDescription(`kamu memberikan **${amount} uang** ke **${target.username}**!`)
       .setTimestamp()
-      .setFooter({ text: `Diminta oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+    return interaction.editReply({ embeds: [embed] });
   },
 };

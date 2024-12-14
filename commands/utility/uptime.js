@@ -19,16 +19,19 @@ function formatDuration(ms) {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('uptime')
-        .setDescription('Displays the bot\'s uptime.'),
+        .setDescription('Menampilkan waktu online bot.'),
     async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
         const uptime = formatDuration(interaction.client.uptime);
 
         const embed = new EmbedBuilder()
             .setColor('Green')
-            .setTitle('🕒 Bot Uptime')
-            .setDescription(`I've been online for **${uptime}**.`)
-            .setTimestamp();
+            .setTitle('> Waktu Online Bot')
+            .setDescription(`Bot ini sudah online selama **${uptime}**.`)
+            .setThumbnail(interaction.client.user.displayAvatarURL())
+            .setTimestamp()
+            .setFooter({ text: "Waktu online bot adalah waktu sejak bot mulai berjalan." });
 
-        await interaction.reply({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed] });
     },
 };

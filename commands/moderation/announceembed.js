@@ -14,8 +14,9 @@ module.exports = {
     .addStringOption((option) => option.setName("footer").setDescription("Footer pengumuman").setRequired(false))
     .addStringOption((option) => option.setName("color").setDescription("Color pengumuman").setRequired(false)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const channel = interaction.options.getChannel("channel");
     const title = interaction.options.getString("title");
@@ -28,9 +29,8 @@ module.exports = {
 
     // cek izin
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.SendMessages)) {
-      return interaction.reply({
+      return interaction.editReply({
         content: "kamu tidak memiliki izin untuk mengirim pesan.",
-        ephemeral: true,
       });
     }
 
@@ -45,9 +45,6 @@ module.exports = {
     // kirim embed ke channel
     await channel.send({ embeds: [embed] });
 
-    return interaction.reply({
-      content: `✅ | Pengumuman dikirim di **${channel.name}**.`,
-      ephemeral: true,
-    });
+    return interaction.editReply(`✅ | Pengumuman dikirim di **${channel.name}**.`);
   },
 };

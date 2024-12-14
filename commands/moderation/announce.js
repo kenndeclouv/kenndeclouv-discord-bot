@@ -7,17 +7,18 @@ module.exports = {
     .addChannelOption((option) => option.setName("channel").setDescription("Channel untuk pengumuman").setRequired(true))
     .addStringOption((option) => option.setName("message").setDescription("Pesan pengumuman").setRequired(true)),
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
     }
     const channel = interaction.options.getChannel("channel");
     const message = interaction.options.getString("message");
 
     if (!interaction.member.permissions.has("SEND_MESSAGES")) {
-      return interaction.reply({ content: "kamu tidak memiliki izin untuk mengirim pesan.", ephemeral: true });
+      return interaction.editReply({ content: "kamu tidak memiliki izin untuk mengirim pesan." });
     }
 
     await channel.send(`📢 Pengumuman: ${message}`);
-    return interaction.reply(`✅ | Pengumuman dikirim di **${channel.name}**.`);
+    return interaction.editReply(`✅ | Pengumuman dikirim di **${channel.name}**.`);
   },
 };
