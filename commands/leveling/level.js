@@ -39,9 +39,8 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
-    const subcommand = interaction.options.getSubcommand();
-
     try {
+      const subcommand = interaction.options.getSubcommand();
       switch (subcommand) {
         case "profile": {
           // Mencari data user berdasarkan ID

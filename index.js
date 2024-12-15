@@ -66,11 +66,14 @@ const deployCommands = async () => {
 
     const commands = [];
     fs.readdirSync(commandsPath).forEach((category) => {
-      const commandFiles = fs.readdirSync(`${commandsPath}/${category}`).filter((file) => file.endsWith(".js"));
-      for (const file of commandFiles) {
-        const command = require(`${commandsPath}/${category}/${file}`);
-        commands.push(command.data.toJSON());
-        console.log(`komen yang diload: ${command.data.name}`);
+      const envVarName = `${category.toUpperCase()}_ON`;
+      if (process.env[envVarName] === "true") {
+        const commandFiles = fs.readdirSync(`${commandsPath}/${category}`).filter((file) => file.endsWith(".js"));
+        for (const file of commandFiles) {
+          const command = require(`${commandsPath}/${category}/${file}`);
+          commands.push(command.data.toJSON());
+          console.log(`komen yang diload: ${command.data.name}`);
+        }
       }
     });
     await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });

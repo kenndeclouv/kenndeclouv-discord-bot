@@ -46,31 +46,35 @@ module.exports = {
         .addStringOption((option) => option.setName("prize").setDescription("Hadiah baru untuk giveaway").setRequired(false))
     ),
 
-  adminOnly: true,
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
-    if (!checkPermission(interaction.member)) {
-      return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
-    }
+    try {
+      if (!checkPermission(interaction.member)) {
+        return interaction.reply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini.", ephemeral: true });
+      }
 
-    switch (subcommand) {
-      case "start":
-        await startGiveaway(interaction);
-        break;
-      case "end":
-        await endGiveaway(interaction);
-        break;
-      case "cancel":
-        await cancelGiveaway(interaction);
-        break;
-      case "drop":
-        await dropGiveaway(interaction);
-        break;
-      case "edit":
-        await editGiveaway(interaction);
-        break;
-      default:
-        await interaction.reply("Subcommand tidak dikenal.");
+      switch (subcommand) {
+        case "start":
+          await startGiveaway(interaction);
+          break;
+        case "end":
+          await endGiveaway(interaction);
+          break;
+        case "cancel":
+          await cancelGiveaway(interaction);
+          break;
+        case "drop":
+          await dropGiveaway(interaction);
+          break;
+        case "edit":
+          await editGiveaway(interaction);
+          break;
+        default:
+          await interaction.reply("Subcommand tidak dikenal.");
+      }
+    } catch (error) {
+      console.error("Error during giveaway command execution:", error);
+      return interaction.reply({ content: "❌ | Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
     }
   },
 };
@@ -109,14 +113,6 @@ function parseDuration(duration) {
 
 // Fungsi untuk memulai giveaway
 async function startGiveaway(interaction) {
-  // cek izin
-  // const { PermissionsBitField } = require('discord.js');
-  if (!interaction.member.permissions.has(PermissionsBitField.Flags.SendMessages)) {
-    return interaction.reply({
-      content: "kamu tidak memiliki izin untuk mengirim pesan.",
-      ephemeral: true,
-    });
-  }
   const durationInput = interaction.options.getString("duration");
   const winners = interaction.options.getInteger("winners");
   const prize = interaction.options.getString("prize");

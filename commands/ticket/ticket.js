@@ -35,115 +35,120 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
-    if (!checkPermission(interaction.member)) {
-      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
-    }
-    const { options } = interaction;
-    const subcommand = options.getSubcommand();
-
-    if (subcommand === "setup") {
-      const channel = options.getChannel("channel");
-      const staffRole = options.getRole("staff-role");
-      const logsChannel = options.getChannel("logs");
-      const transcriptChannel = options.getChannel("transcript");
-      const title = options.getString("title");
-      const description = options.getString("description");
-
-      // Buat dokumen tiket baru
-      const ticket = new Ticket({
-        channelId: channel.id,
-        staffRoleId: staffRole.id,
-        logsChannelId: logsChannel.id,
-        transcriptChannelId: transcriptChannel.id,
-        title,
-        description,
-      });
-
-      await ticket.save();
-
-      // Buat embed pembuatan tiket
-      const ticketEmbed = new EmbedBuilder()
-        .setColor("#0099ff")
-        .setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
-        .setTitle(title)
-        .setDescription(description)
-        .setFooter({ text: "Klik tombol di bawah untuk membuat tiket." });
-
-      const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("create_ticket").setLabel("Buat Tiket").setStyle(ButtonStyle.Primary));
-
-      // Kirim embed di channel yang ditentukan
-      await channel.send({ embeds: [ticketEmbed], components: [row] });
-      await interaction.editReply(`🎫 | Sistem tiket berhasil diatur di ${channel}. Judul: **${title}**.`);
-    } else if (subcommand === "remove") {
-      const user = options.getUser("user");
-      const member = await interaction.guild.members.fetch(user.id);
-
-      // Periksa apakah anggota ada di channel tiket
-      if (interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
-        await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: false });
-        await interaction.editReply(`❌ | **${user.tag}** telah dihapus dari channel tiket.`);
-      } else {
-        await interaction.editReply(`⚠️ | **${user.tag}** tidak ada di channel tiket.`);
+    try {
+      if (!checkPermission(interaction.member)) {
+        return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
       }
-    } else if (subcommand === "add") {
-      const user = options.getUser("user");
-      const member = await interaction.guild.members.fetch(user.id);
+      const { options } = interaction;
+      const subcommand = options.getSubcommand();
 
-      // Periksa apakah anggota ada di channel tiket
-      if (!interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
-        await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: true });
-        await interaction.editReply(`✅ | **${user.tag}** telah ditambahkan ke channel tiket.`);
-      } else {
-        await interaction.editReply(`⚠️ | **${user.tag}** sudah ada di channel tiket.`);
+      if (subcommand === "setup") {
+        const channel = options.getChannel("channel");
+        const staffRole = options.getRole("staff-role");
+        const logsChannel = options.getChannel("logs");
+        const transcriptChannel = options.getChannel("transcript");
+        const title = options.getString("title");
+        const description = options.getString("description");
+
+        // Buat dokumen tiket baru
+        const ticket = new Ticket({
+          channelId: channel.id,
+          staffRoleId: staffRole.id,
+          logsChannelId: logsChannel.id,
+          transcriptChannelId: transcriptChannel.id,
+          title,
+          description,
+        });
+
+        await ticket.save();
+
+        // Buat embed pembuatan tiket
+        const ticketEmbed = new EmbedBuilder()
+          .setColor("#0099ff")
+          .setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
+          .setTitle(title)
+          .setDescription(description)
+          .setFooter({ text: "Klik tombol di bawah untuk membuat tiket." });
+
+        const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("create_ticket").setLabel("Buat Tiket").setStyle(ButtonStyle.Primary));
+
+        // Kirim embed di channel yang ditentukan
+        await channel.send({ embeds: [ticketEmbed], components: [row] });
+        await interaction.editReply(`🎫 | Sistem tiket berhasil diatur di ${channel}. Judul: **${title}**.`);
+      } else if (subcommand === "remove") {
+        const user = options.getUser("user");
+        const member = await interaction.guild.members.fetch(user.id);
+
+        // Periksa apakah anggota ada di channel tiket
+        if (interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
+          await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: false });
+          await interaction.editReply(`❌ | **${user.tag}** telah dihapus dari channel tiket.`);
+        } else {
+          await interaction.editReply(`⚠️ | **${user.tag}** tidak ada di channel tiket.`);
+        }
+      } else if (subcommand === "add") {
+        const user = options.getUser("user");
+        const member = await interaction.guild.members.fetch(user.id);
+
+        // Periksa apakah anggota ada di channel tiket
+        if (!interaction.channel.permissionsFor(member).has(PermissionsBitField.Flags.ViewChannel)) {
+          await interaction.channel.permissionOverwrites.edit(user.id, { ViewChannel: true });
+          await interaction.editReply(`✅ | **${user.tag}** telah ditambahkan ke channel tiket.`);
+        } else {
+          await interaction.editReply(`⚠️ | **${user.tag}** sudah ada di channel tiket.`);
+        }
+      } else if (subcommand === "close") {
+        // Tutup tiket
+        const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
+        if (!ticket) {
+          return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
+        }
+
+        // Ambil channel log dan transkrip dari database
+        const logsChannel = interaction.guild.channels.cache.get(ticket.logsChannelId);
+        const transcriptChannel = interaction.guild.channels.cache.get(ticket.transcriptChannelId);
+
+        // Buat transkrip dari tiket
+        const transcript = await createTranscript(interaction.channel);
+
+        // Kirim transkrip ke channel transkrip
+        await transcriptChannel.send({
+          content: `Transkrip untuk tiket #${ticket.ticketNumber} dibuat oleh <@${ticket.userId}>.`,
+          files: [transcript],
+        });
+
+        // Opsional, kirim notifikasi ke channel log
+        if (logsChannel) {
+          await logsChannel.send(`📝 | Tiket #${ticket.ticketNumber} ditutup oleh ${interaction.user.tag} dan transkrip disimpan.`);
+        }
+
+        // Hapus tiket dari database
+        await Ticket.destroy({ where: { channelId: interaction.channel.id } });
+
+        // Hapus channel tiket
+        await interaction.channel.delete();
+      } else if (subcommand === "transcript") {
+        // Ambil tiket dari database
+        const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
+        if (!ticket) {
+          return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
+        }
+
+        // Buat transkrip dari tiket
+        const transcript = await createTranscript(interaction.channel);
+
+        // Kirim transkrip ke channel transkrip
+        const transcriptChannel = interaction.guild.channels.cache.get(ticket.transcriptChannelId);
+        await transcriptChannel.send({
+          content: `Transkrip untuk tiket #${ticket.ticketNumber} dibuat oleh <@${ticket.userId}>.`,
+          files: [transcript],
+        });
+
+        await interaction.editReply(`📜 | Transkrip untuk tiket ini telah dikirim ke ${transcriptChannel}.`);
       }
-    } else if (subcommand === "close") {
-      // Tutup tiket
-      const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
-      if (!ticket) {
-        return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
-      }
-
-      // Ambil channel log dan transkrip dari database
-      const logsChannel = interaction.guild.channels.cache.get(ticket.logsChannelId);
-      const transcriptChannel = interaction.guild.channels.cache.get(ticket.transcriptChannelId);
-
-      // Buat transkrip dari tiket
-      const transcript = await createTranscript(interaction.channel);
-
-      // Kirim transkrip ke channel transkrip
-      await transcriptChannel.send({
-        content: `Transkrip untuk tiket #${ticket.ticketNumber} dibuat oleh <@${ticket.userId}>.`,
-        files: [transcript],
-      });
-
-      // Opsional, kirim notifikasi ke channel log
-      if (logsChannel) {
-        await logsChannel.send(`📝 | Tiket #${ticket.ticketNumber} ditutup oleh ${interaction.user.tag} dan transkrip disimpan.`);
-      }
-
-      // Hapus tiket dari database
-      await Ticket.destroy({ where: { channelId: interaction.channel.id } });
-
-      // Hapus channel tiket
-      await interaction.channel.delete();
-    } else if (subcommand === "transcript") {
-      // Ambil tiket dari database
-      const ticket = await Ticket.findOne({ where: { channelId: interaction.channel.id } });
-      if (!ticket) {
-        return interaction.editReply(`❌ | Channel ini tidak terkait dengan tiket yang terbuka.`);
-      }
-
-      // Buat transkrip dari tiket
-      const transcript = await createTranscript(interaction.channel);
-
-      // Kirim transkrip ke channel transkrip
-      const transcriptChannel = interaction.guild.channels.cache.get(ticket.transcriptChannelId);
-      await transcriptChannel.send({
-        content: `Transkrip untuk tiket #${ticket.ticketNumber} dibuat oleh <@${ticket.userId}>.`,
-        files: [transcript],
-      });
-
-      await interaction.editReply(`📜 | Transkrip untuk tiket ini telah dikirim ke ${transcriptChannel}.`);
+    } catch (error) {
+      console.error("Error during ticket command execution:", error);
+      return interaction.editReply({ content: "❌ | Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
     }
   },
 };

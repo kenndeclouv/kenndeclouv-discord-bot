@@ -1,6 +1,7 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const AutoMod = require("../../database/models/automod"); // Assuming you have the AutoMod model
 const checkPermission = require("../../helpers/checkPermission");
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("automod")
@@ -26,10 +27,11 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName("whitelist")
-        .setDescription("Tambahkan atau hapus pengguna/peran dari daftar putih automod")
+        .setDescription("Tambahkan atau hapus pengguna/peran dari daftar yang diperbolehkan automod")
         .addStringOption((option) => option.setName("action").setDescription("Tambahkan atau hapus").setRequired(true).addChoices({ name: "Tambahkan", value: "add" }, { name: "Hapus", value: "remove" }))
-        .addMentionableOption((option) => option.setName("target").setDescription("Pengguna atau peran untuk ditambahkan/dihapus dari daftar putih").setRequired(true))
+        .addMentionableOption((option) => option.setName("target").setDescription("Pengguna atau peran untuk ditambahkan/dihapus dari daftar yang diperbolehkan").setRequired(true))
     )
+    .addSubcommand((subcommand) => subcommand.setName("whitelist-list").setDescription("Lihat daftar yang diperbolehkan automod"))
     .addSubcommand((subcommand) =>
       subcommand
         .setName("leveling")
@@ -37,114 +39,134 @@ module.exports = {
         .addStringOption((option) => option.setName("status").setDescription("Aktifkan atau nonaktifkan").setRequired(true).addChoices({ name: "Aktifkan", value: "enable" }, { name: "Nonaktifkan", value: "disable" }))
     ),
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true }); // Always defer reply before answering
+    await interaction.deferReply({ ephemeral: true });
+    try {
+      if (!checkPermission(interaction.member)) {
+        return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
+      }
+      const guildId = interaction.guild.id;
+      const subcommand = interaction.options.getSubcommand();
+      const status = interaction.options.getString("status");
+      const action = interaction.options.getString("action");
+      const target = interaction.options.getMentionable("target");
 
-    if (!checkPermission(interaction.member)) {
-      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
-    }
-    const guildId = interaction.guild.id;
-    const subcommand = interaction.options.getSubcommand();
-    const status = interaction.options.getString("status");
-    const action = interaction.options.getString("action");
-    const target = interaction.options.getMentionable("target");
-
-    // Fetch or create automod settings for the guild
-    let autoModSettings = await AutoMod.findOne({ where: { guildId: guildId } });
-    if (!autoModSettings) {
-      autoModSettings = new AutoMod({ guildId: guildId });
-      await autoModSettings.save();
-    }
-
-    const embed = new EmbedBuilder().setTitle("> AutoMod").setColor("Blue").setThumbnail(interaction.client.user.displayAvatarURL()).setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp();
-
-    switch (subcommand) {
-      case "antiinvites": {
-        // Aktifkan atau nonaktifkan deteksi tautan undangan
-        if (status === "enable") {
-          autoModSettings.antiInvites = true;
-          await autoModSettings.save();
-          embed.setDescription("Deteksi tautan undangan telah diaktifkan.");
-          return interaction.editReply({ embeds: [embed] });
-        } else {
-          autoModSettings.antiInvites = false;
-          await autoModSettings.save();
-          embed.setDescription("Deteksi tautan undangan telah dinonaktifkan.");
-          return interaction.editReply({ embeds: [embed] });
-        }
+      // Fetch or create automod settings for the guild
+      let autoModSettings = await AutoMod.findOne({ where: { guildId: guildId } });
+      if (!autoModSettings) {
+        autoModSettings = new AutoMod({ guildId: guildId });
+        await autoModSettings.save();
       }
 
-      case "antilinks": {
-        // Aktifkan atau nonaktifkan deteksi tautan umum
-        if (status === "enable") {
-          autoModSettings.antiLinks = true;
+      const embed = new EmbedBuilder().setTitle("> AutoMod").setColor("Blue").setThumbnail(interaction.client.user.displayAvatarURL()).setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp();
+
+      switch (subcommand) {
+        case "antiinvites": {
+          autoModSettings.antiInvites = status === "enable";
           await autoModSettings.save();
-          embed.setDescription("Deteksi tautan telah diaktifkan.");
-          return interaction.editReply({ embeds: [embed] });
-        } else {
-          autoModSettings.antiLinks = false;
-          await autoModSettings.save();
-          embed.setDescription("Deteksi tautan telah dinonaktifkan.");
+          embed.setDescription(`Deteksi tautan undangan telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
           return interaction.editReply({ embeds: [embed] });
         }
-      }
-
-      case "antispam": {
-        // Aktifkan atau nonaktifkan deteksi spam
-        if (status === "enable") {
-          autoModSettings.antiSpam = true;
+        case "antilinks": {
+          autoModSettings.antiLinks = status === "enable";
           await autoModSettings.save();
-          embed.setDescription("Deteksi spam telah diaktifkan.");
-          return interaction.editReply({ embeds: [embed] });
-        } else {
-          autoModSettings.antiSpam = false;
-          await autoModSettings.save();
-          embed.setDescription("Deteksi spam telah dinonaktifkan.");
+          embed.setDescription(`Deteksi tautan telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
           return interaction.editReply({ embeds: [embed] });
         }
-      }
+        case "antispam": {
+          autoModSettings.antiSpam = status === "enable";
+          await autoModSettings.save();
+          embed.setDescription(`Deteksi spam telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
+          return interaction.editReply({ embeds: [embed] });
+        }
+        case "whitelist": {
+          const targetId = target.id;
+          console.log("Data awal whitelist dari database:", autoModSettings.whitelist);
+          let whitelist = autoModSettings.whitelist;
 
-      case "whitelist": {
-        // Tambahkan atau hapus pengguna/peran dari daftar diperbolehkan
-        const targetId = target.id;
-        let whitelist = autoModSettings.whitelist || [];
+          if (!Array.isArray(whitelist) && typeof whitelist === "string") {
+            console.log("Whitelist adalah string JSON, mencoba parse...");
+            try {
+              whitelist = JSON.parse(whitelist); // ubah string jadi array
+            } catch (error) {
+              console.error("Gagal parse whitelist JSON, reset ke array kosong.", error);
+              whitelist = [];
+            }
+          } else if (!Array.isArray(whitelist)) {
+            console.log("Whitelist bukan array atau JSON, reset ke array kosong.");
+            whitelist = [];
+          }
 
-        if (action === "add") {
-          if (whitelist.includes(targetId)) {
-            embed.setDescription("Pengguna/peran ini sudah ada dalam daftar diperbolehkan.");
+          if (action === "add") {
+            if (whitelist.includes(targetId)) {
+              embed.setDescription("Pengguna/peran ini sudah ada dalam daftar diperbolehkan.");
+              return interaction.editReply({ embeds: [embed] });
+            }
+            whitelist.push(targetId); // tambah data baru
+            autoModSettings.whitelist = whitelist; // update field whitelist
+            autoModSettings.changed("whitelist", true); // pastikan Sequelize tahu ada perubahan
+            await autoModSettings.save(); // simpan ke database
+            embed.setDescription(interaction.guild.members.cache.get(targetId) ? `Ditambahkan user <@${targetId}> ke daftar diperbolehkan.` : `Ditambahkan role <@&${targetId}> ke daftar diperbolehkan.`);
+            return interaction.editReply({ embeds: [embed] });
+          } else if (action === "remove") {
+            if (!whitelist.includes(targetId)) {
+              embed.setDescription("Pengguna/peran ini tidak ada dalam daftar diperbolehkan.");
+              return interaction.editReply({ embeds: [embed] });
+            }
+            whitelist = whitelist.filter((id) => id !== targetId); // hapus data
+            autoModSettings.whitelist = whitelist; // update field whitelist
+            autoModSettings.changed("whitelist", true); // pastikan Sequelize tahu ada perubahan
+            await autoModSettings.save(); // simpan ke database
+            embed.setDescription(interaction.guild.members.cache.get(targetId) ? `Dihapus user <@${targetId}> dari daftar diperbolehkan.` : `Dihapus role <@&${targetId}> dari daftar diperbolehkan.`);
             return interaction.editReply({ embeds: [embed] });
           }
-          whitelist.push(targetId);
-          autoModSettings.whitelist = whitelist;
+        }
+
+        case "leveling": {
+          autoModSettings.leveling = status === "enable";
           await autoModSettings.save();
-          embed.setDescription(`Ditambahkan <@${targetId}> ke daftar diperbolehkan.`);
+          embed.setDescription(`Sistem leveling telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
           return interaction.editReply({ embeds: [embed] });
-        } else if (action === "remove") {
-          const index = whitelist.indexOf(targetId);
-          if (index === -1) {
-            embed.setDescription("Pengguna/peran ini tidak ada dalam daftar diperbolehkan.");
+        }
+
+        case "whitelist-list": {
+          // Pastikan whitelist adalah array yang valid
+          let whitelist = autoModSettings.whitelist;
+
+          // Jika whitelist bukan array, coba parse menjadi array
+          if (typeof whitelist === "string") {
+            whitelist = JSON.parse(whitelist);
+          }
+
+          if (!Array.isArray(whitelist)) {
+            whitelist = []; // fallback ke array kosong jika parsing gagal
+          }
+
+          if (whitelist.length === 0) {
+            embed.setDescription("daftar yang diperbolehkan automod kosong.");
             return interaction.editReply({ embeds: [embed] });
           }
-          whitelist.splice(index, 1);
-          autoModSettings.whitelist = whitelist;
-          await autoModSettings.save();
-          embed.setDescription(`Dihapus <@${targetId}> dari daftar diperbolehkan.`);
-          return interaction.editReply({ embeds: [embed] });
-        }
-      }
 
-      case "leveling": {
-        if (status == "enable") {
-          autoModSettings.leveling = true;
-          await autoModSettings.save();
-          embed.setDescription("Sistem leveling telah diaktifkan.");
-          return interaction.editReply({ embeds: [embed] });
-        } else {
-          autoModSettings.leveling = false;
-          await autoModSettings.save();
-          embed.setDescription("Sistem leveling telah dinonaktifkan.");
+          const whitelistString = whitelist
+            .map((id) => {
+              const member = interaction.guild.members.cache.get(id);
+              if (member) {
+                return `<@${id}>`;
+              }
+              const role = interaction.guild.roles.cache.get(id);
+              if (role) {
+                return `<@&${id}>`;
+              }
+              return `ID tidak valid: ${id}`;
+            })
+            .join("\n");
+
+          embed.setDescription(`daftar yang diperbolehkan automod:\n${whitelistString}`);
           return interaction.editReply({ embeds: [embed] });
         }
       }
+    } catch (error) {
+      console.error("Error during automod command execution:", error);
+      return interaction.editReply({ content: "❌ Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
     }
   },
 };

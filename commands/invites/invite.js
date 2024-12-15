@@ -36,69 +36,74 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
-    const subcommand = interaction.options.getSubcommand();
-    const targetUser = interaction.options.getUser("user");
-    const number = interaction.options.getInteger("number");
-    const guildId = interaction.guild.id;
+    try {
+      const subcommand = interaction.options.getSubcommand();
+      const targetUser = interaction.options.getUser("user");
+      const number = interaction.options.getInteger("number");
+      const guildId = interaction.guild.id;
 
-    if (!checkPermission(interaction.member)) {
-      return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
-    }
-    const embed = new EmbedBuilder().setColor("Blue").setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp().setThumbnail(interaction.client.user.displayAvatarURL());
-    switch (subcommand) {
-      case "user": {
-        // Check a user's invites
-        const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
-        const invitesCount = userInvites ? userInvites.invites : 0;
-        const userEmbed = embed.setDescription(`${targetUser.username} memiliki ${invitesCount} undangan.`);
-        return interaction.editReply({ embeds: [userEmbed] });
+      if (!checkPermission(interaction.member)) {
+        return interaction.editReply({ content: "❌ Kamu tidak punya izin untuk menggunakan perintah ini." });
       }
-
-      case "add": {
-        // Add invites to a user
-        const userInvites = await Invite.upsert({ userId: targetUser.id, guildId, invites: number }, { returning: true });
-        const addEmbed = embed.setDescription(`Menambahkan ${number} undangan ke ${targetUser.username}. Sekarang mereka memiliki ${userInvites[0].invites} undangan.`);
-        return interaction.editReply({ embeds: [addEmbed] });
-      }
-
-      case "remove": {
-        // Remove invites from a user
-        const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
-        const updatedInvites = userInvites ? userInvites.invites - number : -number;
-        await Invite.upsert({ userId: targetUser.id, guildId, invites: updatedInvites });
-        const removeEmbed = embed.setDescription(`Menghapus ${number} undangan dari ${targetUser.username}. Sekarang mereka memiliki ${updatedInvites} undangan.`);
-        return interaction.editReply({ embeds: [removeEmbed] });
-      }
-
-      case "leaderboard": {
-        // Display the invite leaderboard using EmbedBuilder
-        const topInviters = await Invite.findAll({
-          where: { guildId },
-          order: [["invites", "DESC"]],
-          limit: 10,
-        });
-        if (topInviters.length === 0) {
-          return interaction.editReply({ content: "Belum ada data undangan yang tersedia." });
+      const embed = new EmbedBuilder().setColor("Blue").setFooter({ text: "Sistem", iconURL: interaction.client.user.displayAvatarURL() }).setTimestamp().setThumbnail(interaction.client.user.displayAvatarURL());
+      switch (subcommand) {
+        case "user": {
+          // Check a user's invites
+          const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
+          const invitesCount = userInvites ? userInvites.invites : 0;
+          const userEmbed = embed.setDescription(`${targetUser.username} memiliki ${invitesCount} undangan.`);
+          return interaction.editReply({ embeds: [userEmbed] });
         }
 
-        const leaderboard = topInviters.map((invite, index) => `${index + 1}. <@${invite.userId}> - **${invite.invites} undangan**`).join("\n");
+        case "add": {
+          // Add invites to a user
+          const userInvites = await Invite.upsert({ userId: targetUser.id, guildId, invites: number }, { returning: true });
+          const addEmbed = embed.setDescription(`Menambahkan ${number} undangan ke ${targetUser.username}. Sekarang mereka memiliki ${userInvites[0].invites} undangan.`);
+          return interaction.editReply({ embeds: [addEmbed] });
+        }
 
-        const leaderboardEmbed = new EmbedBuilder()
-          .setTitle("🏆 Papan Peringkat Undangan")
-          .setColor("Gold")
-          .setDescription(leaderboard)
-          .setFooter({ text: `Top ${topInviters.length} pengundang di ${interaction.guild.name}`, iconURL: interaction.client.user.displayAvatarURL() })
-          .setTimestamp();
+        case "remove": {
+          // Remove invites from a user
+          const userInvites = await Invite.findOne({ where: { userId: targetUser.id, guildId } });
+          const updatedInvites = userInvites ? userInvites.invites - number : -number;
+          await Invite.upsert({ userId: targetUser.id, guildId, invites: updatedInvites });
+          const removeEmbed = embed.setDescription(`Menghapus ${number} undangan dari ${targetUser.username}. Sekarang mereka memiliki ${updatedInvites} undangan.`);
+          return interaction.editReply({ embeds: [removeEmbed] });
+        }
 
-        return interaction.editReply({ embeds: [leaderboardEmbed] });
+        case "leaderboard": {
+          // Display the invite leaderboard using EmbedBuilder
+          const topInviters = await Invite.findAll({
+            where: { guildId },
+            order: [["invites", "DESC"]],
+            limit: 10,
+          });
+          if (topInviters.length === 0) {
+            return interaction.editReply({ content: "Belum ada data undangan yang tersedia." });
+          }
+
+          const leaderboard = topInviters.map((invite, index) => `${index + 1}. <@${invite.userId}> - **${invite.invites} undangan**`).join("\n");
+
+          const leaderboardEmbed = new EmbedBuilder()
+            .setTitle("🏆 Papan Peringkat Undangan")
+            .setColor("Gold")
+            .setDescription(leaderboard)
+            .setFooter({ text: `Top ${topInviters.length} pengundang di ${interaction.guild.name}`, iconURL: interaction.client.user.displayAvatarURL() })
+            .setTimestamp();
+
+          return interaction.editReply({ embeds: [leaderboardEmbed] });
+        }
+
+        case "reset": {
+          // Reset a user's invites
+          await Invite.upsert({ userId: targetUser.id, guildId, invites: 0 });
+          const resetEmbed = embed.setDescription(`Mengatur ulang undangan untuk ${targetUser.username}.`);
+          return interaction.editReply({ embeds: [resetEmbed] });
+        }
       }
-
-      case "reset": {
-        // Reset a user's invites
-        await Invite.upsert({ userId: targetUser.id, guildId, invites: 0 });
-        const resetEmbed = embed.setDescription(`Mengatur ulang undangan untuk ${targetUser.username}.`);
-        return interaction.editReply({ embeds: [resetEmbed] });
-      }
+    } catch (error) {
+      console.error("Error during invite command execution:", error);
+      return interaction.editReply({ content: "❌ | Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
     }
   },
 };

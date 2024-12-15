@@ -6,116 +6,114 @@ module.exports = {
   data: new SlashCommandBuilder().setName("shop").setDescription("Lihat dan beli item dari toko."),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
-    const user = await User.findOne({ where: { userId: interaction.user.id } });
-    if (!user) {
-      return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
-    }
-
-    const items = [
-      { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
-      { name: "🛡️ Shield", price: 200, description: "Perisai yang kokoh untuk melindungi diri dari pencuri." },
-      { name: "⚔️ Sword", price: 250, description: "Pedang yang kuat untuk bertarung melawan pencuri." },
-      { name: "🍪 Pet Food", price: 200, description: "Makanan untuk hewan peliharaan kamu." },
-    ];
-
-    const embed = new EmbedBuilder()
-      .setColor("Blue")
-      .setTitle("> Toko")
-      .setDescription("Selamat datang di toko! Pilih item yang ingin kamu beli:")
-      .setTimestamp()
-      .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
-
-    items.forEach((item) => {
-      embed.addFields({ name: `${item.name}`, value: `Harga: **${item.price}** uang\n${item.description}`, inline: true });
-    });
-
-    const row = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId("select_item")
-        .setPlaceholder("Pilih item untuk dibeli")
-        .addOptions(
-          items.map((item) => ({
-            label: item.name,
-            description: `Harga: ${item.price} uang`,
-            value: item.name.toLowerCase(),
-          }))
-        )
-    );
-
-    await interaction.editReply({ embeds: [embed], components: [row] });
-
-    const filter = (i) => i.user.id === interaction.user.id;
-    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
-
-    collector.on("collect", async (i) => {
-      if (i.customId === "select_item") {
-        await i.deferUpdate();
-        const selectedItem = items.find((item) => item.name.toLowerCase() === i.values[0]);
-
-        if (!selectedItem) return;
-
-        if (user.cash < selectedItem.price) {
-          await interaction.editReply({
-            content: "kamu tidak memiliki uang yang cukup untuk membeli item ini.",
-            embeds: [], // hapus embed
-            components: [],
-          });
-          return;
-        }
-
-        const confirmRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId("confirm_purchase").setLabel("Konfirmasi Pembelian").setStyle(ButtonStyle.Success),
-          new ButtonBuilder().setCustomId("cancel_purchase").setLabel("Batal").setStyle(ButtonStyle.Danger)
-        );
-
-        await interaction.editReply({
-          content: `kamu akan membeli **${selectedItem.name}** seharga **${selectedItem.price} uang**. Konfirmasi pembelian?`,
-          embeds: [], // hapus embed
-          components: [confirmRow],
-        });
-
-        const confirmationFilter = (btn) => btn.user.id === interaction.user.id;
-        const confirmationCollector = interaction.channel.createMessageComponentCollector({ filter: confirmationFilter, time: 15000, max: 1 });
-
-        confirmationCollector.on("collect", async (btn) => {
-          await btn.deferUpdate();
-          if (btn.customId === "confirm_purchase") {
-            user.cash -= selectedItem.price;
-            await user.save();
-
-            await Inventory.create({
-              userId: user.userId,
-              itemName: selectedItem.name,
-            });
-
-            await interaction.editReply({
-              content: `kamu berhasil membeli **${selectedItem.name}**!`,
-              embeds: [], // hapus embed
-              components: [],
-            });
-          } else if (btn.customId === "cancel_purchase") {
-            await interaction.editReply({
-              content: "Pembelian dibatalkan.",
-              embeds: [], // hapus embed
-              components: [],
-            });
-          }
-        });
-
-        confirmationCollector.on("end", () => {
-          interaction.editReply({
-            components: [],
-          });
-        });
+    try {
+      const user = await User.findOne({ where: { userId: interaction.user.id } });
+      if (!user) {
+        return interaction.editReply({ content: "kamu belum memiliki akun gunakan `/account create` untuk membuat akun." });
       }
-    });
 
-    collector.on("end", () => {
-      interaction.editReply({
-        content: "Waktu habis. Silakan gunakan kembali perintah `/shop` untuk mengakses toko.",
-        embeds: [], // hapus embed
-        components: [],
+      const items = [
+        { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
+        { name: "🚓 Guard", price: 200, description: "Penjaga untuk melindungi diri dari pencuri." },
+        { name: "🍪 Pet Food", price: 200, description: "Makanan untuk hewan peliharaan kamu." },
+        { name: "💻 Laptop", price: 2000, description: "Laptop untuk meningkatkan kecepatan kerja." },
+        { name: "🖥️ Desktop", price: 2000, description: "Desktop untuk meningkatkan kemungkinan berhasil hack." },
+      ];
+
+      const embed = new EmbedBuilder().setColor("Blue").setTitle("> Toko").setDescription("Selamat datang di toko! Pilih item yang ingin kamu beli:").setTimestamp().setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
+
+      items.forEach((item) => {
+        embed.addFields({ name: `${item.name}`, value: `Harga: **${item.price}** uang\n${item.description}`, inline: true });
       });
-    });
+
+      const row = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId("select_item")
+          .setPlaceholder("Pilih item untuk dibeli")
+          .addOptions(
+            items.map((item) => ({
+              label: item.name,
+              description: `Harga: ${item.price} uang`,
+              value: item.name.toLowerCase(),
+            }))
+          )
+      );
+
+      await interaction.editReply({ embeds: [embed], components: [row] });
+
+      const filter = (i) => i.user.id === interaction.user.id;
+      const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
+
+      collector.on("collect", async (i) => {
+        if (i.customId === "select_item") {
+          await i.deferUpdate();
+          const selectedItem = items.find((item) => item.name.toLowerCase() === i.values[0]);
+
+          if (!selectedItem) return;
+
+          if (user.cash < selectedItem.price) {
+            await interaction.editReply({
+              content: "kamu tidak memiliki uang yang cukup untuk membeli item ini.",
+              embeds: [], // hapus embed
+              components: [],
+            });
+            return;
+          }
+
+          const confirmRow = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("confirm_purchase").setLabel("Konfirmasi Pembelian").setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId("cancel_purchase").setLabel("Batal").setStyle(ButtonStyle.Danger));
+
+          await interaction.editReply({
+            content: `kamu akan membeli **${selectedItem.name}** seharga **${selectedItem.price} uang**. Konfirmasi pembelian?`,
+            embeds: [], // hapus embed
+            components: [confirmRow],
+          });
+
+          const confirmationFilter = (btn) => btn.user.id === interaction.user.id;
+          const confirmationCollector = interaction.channel.createMessageComponentCollector({ filter: confirmationFilter, time: 15000, max: 1 });
+
+          confirmationCollector.on("collect", async (btn) => {
+            await btn.deferUpdate();
+            if (btn.customId === "confirm_purchase") {
+              user.cash -= selectedItem.price;
+              await user.save();
+
+              await Inventory.create({
+                userId: user.userId,
+                itemName: selectedItem.name,
+              });
+
+              await interaction.editReply({
+                content: `kamu berhasil membeli **${selectedItem.name}**!`,
+                embeds: [], // hapus embed
+                components: [],
+              });
+            } else if (btn.customId === "cancel_purchase") {
+              await interaction.editReply({
+                content: "Pembelian dibatalkan.",
+                embeds: [], // hapus embed
+                components: [],
+              });
+            }
+          });
+
+          confirmationCollector.on("end", () => {
+            interaction.editReply({
+              components: [],
+            });
+          });
+        }
+      });
+
+      collector.on("end", () => {
+        interaction.editReply({
+          content: "Waktu habis. Silakan gunakan kembali perintah `/shop` untuk mengakses toko.",
+          embeds: [], // hapus embed
+          components: [],
+        });
+      });
+    } catch (error) {
+      console.error("Error during shop command execution:", error);
+      return interaction.editReply({ content: "❌ Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
+    }
   },
 };

@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, SelectMenuBuilder } = require("discor
 const checkCooldown = require("../../helpers/checkCooldown");
 const checkPermission = require("../../helpers/checkPermission");
 const { UserPet, Pet } = require("../../database/models");
+const Inventory = require("../../database/models/inventory");
 const User = require("../../database/models/User");
 const config = require("../../config");
 const { Op } = require("sequelize");
@@ -155,13 +156,18 @@ module.exports = {
           return interaction.editReply({ content: "💀 petmu sudah mati! kamu dapat mengadopsi pet baru dengan perintah `/pet adopt`" });
         }
 
-        const petFood = await Inventory.findOne({ where: { UserId: userId, itemName: "🍪 Pet Food" } });
+        const petFood = await Inventory.findOne({ where: { userId: userId, itemName: "🍪 Pet Food" } });
         if (!petFood) {
           return interaction.editReply({ content: "❌ Kamu belum memiliki makanan untuk pet!" });
         }
         await petFood.destroy();
         userPet.hunger = Math.min(userPet.hunger + 20, 100);
         await userPet.save();
+
+        // Check if hunger exceeds the maximum limit
+        if (userPet.hunger >= 100) {
+          return interaction.editReply({ content: "🎉 Petmu sudah kenyang!" });
+        }
 
         const embed = new EmbedBuilder()
           .setTitle(`> yeyy kamu berhasil memberi makan pet!`)
@@ -388,8 +394,8 @@ module.exports = {
         }
       }
     } catch (error) {
-      console.error(error);
-      return interaction.editReply({ content: "❌ Terjadi kesalahan!" });
+      console.error("Error during pet command execution:", error);
+      return interaction.editReply({ content: "❌ | Terjadi kesalahan saat menjalankan perintah ini. Silakan coba lagi." });
     }
   },
 };

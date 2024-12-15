@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require("disc
 const User = require("../../database/models/User"); // pastikan model User benar
 const config = require("../../config");
 const checkCooldown = require("../../helpers/checkCooldown");
+const Inventory = require("../../database/models/inventory");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,17 +12,12 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
+
     try {
       const targetUser = interaction.options.getUser("target");
       const user = await User.findOne({ where: { userId: interaction.user.id } });
       const target = await User.findOne({ where: { userId: targetUser.id } });
 
-      // cek izin
-      if (!interaction.member.permissions.has(PermissionsBitField.Flags.SendMessages)) {
-        return interaction.editReply({
-          content: "kamu tidak memiliki izin untuk mengirim pesan.",
-        });
-      }
       // Cooldown check
       const cooldown = checkCooldown(user.lastHack, config.cooldowns.hack);
       if (cooldown.remaining) {
@@ -63,9 +59,14 @@ module.exports = {
       // kirim embed fake hack
       await interaction.editReply({ embeds: [embed] });
 
+      const desktop = await Inventory.findOne({ where: { userId: user.userId, itemName: "🖥️ Desktop" } });
+      let successChance = 1;
+      if (desktop) {
+        successChance = 1.5;
+      }
       // simulasi hasil hack
       setTimeout(async () => {
-        const hackResult = Math.random() < (user.hackMastered || 10) / 100 ? "success" : "failure";
+        const hackResult = Math.random() < (user.hackMastered || 10) / 100 * successChance ? "success" : "failure";
 
         if (hackResult === "success") {
           // transfer semua uang target ke user
