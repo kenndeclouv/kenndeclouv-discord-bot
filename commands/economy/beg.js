@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
       }
 
       // Cooldown check
-      const cooldown = checkCooldown(user.lastBeg, config.cooldowns.beg);
+      const cooldown = checkCooldown(user.lastBeg, process.env.BEG_COOLDOWN);
       if (cooldown.remaining) {
         return interaction.reply({ content: `🕒 | kamu dapat meminta uang lagi dalam **${cooldown.time}**!`, ephemeral: true });
       }

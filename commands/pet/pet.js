@@ -4,7 +4,7 @@ const checkPermission = require("../../helpers/checkPermission");
 const { UserPet, Pet } = require("../../database/models");
 const Inventory = require("../../database/models/inventory");
 const User = require("../../database/models/User");
-const config = require("../../config");
+require("dotenv").config();
 const { Op } = require("sequelize");
 
 module.exports = {
@@ -230,7 +230,7 @@ module.exports = {
         const userId = interaction.user.id;
         const user = await User.findOne({ where: { userId } });
         const userPet = await UserPet.findOne({ where: { userId }, include: { model: Pet, as: "pet" } });
-        const cooldown = checkCooldown(userPet.lastUse, config.cooldowns.pet);
+        const cooldown = checkCooldown(userPet.lastUse, process.env.PET_COOLDOWN);
         if (cooldown.remaining) {
           return interaction.editReply({ content: `🕒 | kamu dapat menggunakan pet lagi dalam **${cooldown.time}**!` });
         }
@@ -278,7 +278,7 @@ module.exports = {
           return interaction.editReply({ content: "❌ Kamu belum memiliki pet untuk digacha!" });
         }
 
-        // const cooldown = checkCooldown(userPet.lastGacha, config.cooldowns.gacha);
+        const cooldown = checkCooldown(userPet.lastGacha, process.env.GACHA_COOLDOWN);
         if (cooldown.remaining) {
           return interaction.editReply({ content: `🕒 | kamu dapat menggacha pet lagi dalam **${cooldown.time}**!` });
         }

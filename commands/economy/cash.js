@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
 
 module.exports = {
-  data: new SlashCommandBuilder().setName("cash").setDescription("Cek saldo tunai anda."),
+  data: new SlashCommandBuilder().setName("cash").setDescription("Cek saldo tunai kamu."),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
     try {

@@ -1,35 +1,19 @@
+require("dotenv").config();
+const roleReward = [];
+
+Object.keys(process.env).forEach((key) => {
+  if (key.startsWith("ROLE_REWARD_LEVEL_")) {
+    const level = parseInt(key.replace("ROLE_REWARD_LEVEL_", ""), 10);
+    const role = process.env[key];
+    if (!isNaN(level) && role) {
+      roleReward.push({ level, role });
+    }
+  }
+});
+
+// urutkan dari level kecil ke besar (optional)
+roleReward.sort((a, b) => a.level - b.level);
+
 module.exports = {
-  cooldowns: {
-    daily: 86400, // 1 day
-    beg: 300, // 5 minutes
-    lootbox: 432000, // 5 days
-    work: 3600, // 1 hour
-    rob: 1800, // 30 minutes
-    hack: 300, // 5 minutes
-    leveling: 60000, // 1 minute
-    pet: 900, // 15 minutes
-    gacha: 1800, // 30 minutes
-    roleReward: [
-      {
-        level: 5,
-        role: "1317255056189558876",
-      },
-      {
-        level: 10,
-        role: "1317255117036191786",
-      },
-      {
-        level: 15,
-        role: "1317255160396910713",
-      },
-      {
-        level: 20,
-        role: "1317255235348992072",
-      },
-      {
-        level: 25,
-        role: "1317255281708892284",
-      },
-    ],
-  },
+  roleReward,
 };

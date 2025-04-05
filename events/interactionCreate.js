@@ -15,7 +15,7 @@ module.exports = {
         const missingPermissions = command.permissions.filter((permission) => !interaction.guild.members.me.permissions.has(permission));
         if (missingPermissions.length > 0) {
           return await interaction.reply({
-            content: `⚠️ | I am missing the following permissions to execute this command: \`${missingPermissions.join(", ")}\`.`,
+            content: `⚠️ | Kamu tidak memiliki permission untuk mengakses command ini: \`${missingPermissions.join(", ")}\`.`,
             ephemeral: true,
           });
         }
@@ -36,10 +36,10 @@ module.exports = {
         await command.execute(interaction, client); // Pass the client
       } catch (error) {
         console.error(error);
-        await interaction.reply({ content: "💀 | You met a rare bot error.", ephemeral: true });
+        await interaction.reply({ content: "💀 | Ini error yang jarang terjadi di bot.", ephemeral: true });
       }
     } else {
-      console.error("Interaction is null or undefined");
+      console.error("Interaksi null atau tidak didefinisikan");
       return;
     }
 
@@ -97,18 +97,18 @@ async function createTicket(interaction, ticketData) {
     });
 
     await ticketChannel.send({
-      content: `Hello ${interaction.user}, your ticket has been created! <@&${ticketData.staffRoleId}> staff, please assist.`,
+      content: `Haloo ${interaction.user}! Tiketmu sudah terbuat! Tolong tunggu staff <@&${ticketData.staffRoleId}>, untuk menjawab. `,
     });
 
-    await interaction.reply({ content: `✅ | Ticket created: ${ticketChannel}`, ephemeral: true });
+    await interaction.reply({ content: `✅ | Tiket dibuat : ${ticketChannel}`, ephemeral: true });
 
     const newTicket = new Ticket({
       userId: interaction.user.id,
       channelId: ticketChannel.id,
       guildId: interaction.guild.id,
       ticketNumber: ticketNumber,
-      description: "New ticket created",
-      title: `Ticket #${ticketNumber}`,
+      description: "Tiket baru dibuat",
+      title: `Tiket #${ticketNumber}`,
       transcriptChannelId: ticketData.transcriptChannelId,
       logsChannelId: ticketData.logsChannelId,
       staffRoleId: ticketData.staffRoleId,
@@ -116,7 +116,7 @@ async function createTicket(interaction, ticketData) {
 
     await newTicket.save();
   } catch (error) {
-    console.error("Error creating ticket:", error);
-    await interaction.reply({ content: "❌ | An error occurred while creating the ticket.", ephemeral: true });
+    console.error("Error saat membuat tiket:", error);
+    await interaction.reply({ content: "❌ | Error terjadi saat mencoba membuat tiket.", ephemeral: true });
   }
 }

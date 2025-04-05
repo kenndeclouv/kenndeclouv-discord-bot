@@ -13,7 +13,7 @@ module.exports = {
       }
 
       const items = [
-        { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika anda dicuri." },
+        { name: "🧪 Poison", price: 250, description: "Poison yang dapat meracuni musuh jika kamu dicuri." },
         { name: "🚓 Guard", price: 200, description: "Penjaga untuk melindungi diri dari pencuri." },
         { name: "🍪 Pet Food", price: 200, description: "Makanan untuk hewan peliharaan kamu." },
         { name: "💻 Laptop", price: 2000, description: "Laptop untuk meningkatkan kecepatan kerja." },

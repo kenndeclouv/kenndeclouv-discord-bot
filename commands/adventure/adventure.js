@@ -152,6 +152,7 @@ module.exports = {
       const sword = await Inventory.findOne({ where: { userId: interaction.user.id, itemName: "⚔️ Sword" } });
       const shield = await Inventory.findOne({ where: { userId: interaction.user.id, itemName: "🛡️ Shield" } });
       const armor = await Inventory.findOne({ where: { userId: interaction.user.id, itemName: "🥋 Armor" } });
+      const revival = await Inventory.findOne({ where: { userId: interaction.user.id, itemName: "🍶 Revival" } });
 
       // hitung strength dan defense berdasarkan inventory
       let userStrength = user.strength + (sword ? 15 : 0);
@@ -171,6 +172,18 @@ module.exports = {
 
       // jika user kalah
       if (user.hp <= 0) {
+        if (revival) {
+          revival.destroy();
+          return interaction.editReply({
+            embeds: [
+              embed
+                .setTitle(`> Kamu Bangkit!`)
+                .setDescription(`😇 Kamu dibangkitkan karena memiliki item 🍶 Revival.`)
+                .setColor("Green")
+                .setFooter({ text: "Petualanganmu belum berakhir!", iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }) }),
+            ],
+          });
+        };
         user.hp = 50; // regenerate HP
         user.monsterName = null; // reset monster
         await user.save();

@@ -4,7 +4,7 @@ const User = require("../../database/models/User");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("withdraw")
-    .setDescription("Tarik uang tunai anda dari bank.")
+    .setDescription("Tarik uang tunai kamu dari bank.")
     .addIntegerOption((option) => option.setName("amount").setDescription("Jumlah untuk menarik uang").setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });

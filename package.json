@@ -1,10 +1,11 @@
 {
-    "name": "discord-bot",
+    "name": "kenndeclouv-discord-bot",
     "version": "1.0.0",
-    "description": "A Discord bot with All in One Commands and MongoDB integration.",
+    "description": "A Discord bot with All in One Commands",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+        "seed": "node run-seed.js"
     },
     "author": "Friday",
     "license": "ISC",

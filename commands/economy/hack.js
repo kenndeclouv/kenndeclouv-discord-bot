@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const User = require("../../database/models/User"); // pastikan model User benar
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 const Inventory = require("../../database/models/inventory");
 
@@ -19,7 +19,7 @@ module.exports = {
       const target = await User.findOne({ where: { userId: targetUser.id } });
 
       // Cooldown check
-      const cooldown = checkCooldown(user.lastHack, config.cooldowns.hack);
+      const cooldown = checkCooldown(user.lastHack, process.env.HACK_COOLDOWN);
       if (cooldown.remaining) {
         return interaction.editReply({ content: `🕒 | kamu dapat meng-hack lainnya dalam **${cooldown.time}**!` });
       }

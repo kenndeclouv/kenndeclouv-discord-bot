@@ -26,12 +26,25 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName("antibadwords")
+        .setDescription("Aktifkan atau nonaktifkan ban kata kata kasar")
+        .addStringOption((option) => option.setName("status").setDescription("Aktifkan atau nonaktifkan").setRequired(true).addChoices({ name: "Aktifkan", value: "enable" }, { name: "Nonaktifkan", value: "disable" }))
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName("whitelist")
         .setDescription("Tambahkan atau hapus pengguna/peran dari daftar yang diperbolehkan automod")
         .addStringOption((option) => option.setName("action").setDescription("Tambahkan atau hapus").setRequired(true).addChoices({ name: "Tambahkan", value: "add" }, { name: "Hapus", value: "remove" }))
         .addMentionableOption((option) => option.setName("target").setDescription("Pengguna atau peran untuk ditambahkan/dihapus dari daftar yang diperbolehkan").setRequired(true))
     )
-    .addSubcommand((subcommand) => subcommand.setName("whitelist-list").setDescription("Lihat daftar yang diperbolehkan automod"))
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("badwords")
+        .setDescription("Tambahkan atau hapus kata kata kasar yang dilarang dalam server")
+        .addStringOption((option) => option.setName("action").setDescription("Tambahkan atau hapus").setRequired(true).addChoices({ name: "Tambahkan", value: "add" }, { name: "Hapus", value: "remove" }))
+        .addStringOption((option) => option.setName("word").setDescription("Kata kata").setRequired(true))
+    )
+    .addSubcommand((subcommand) => subcommand.setName("badwords-list").setDescription("Lihat daftar yang diperbolehkan automod"))
     .addSubcommand((subcommand) =>
       subcommand
         .setName("leveling")
@@ -76,6 +89,12 @@ module.exports = {
           autoModSettings.antiSpam = status === "enable";
           await autoModSettings.save();
           embed.setDescription(`Deteksi spam telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
+          return interaction.editReply({ embeds: [embed] });
+        }
+        case "antibadwords": {
+          autoModSettings.antiBadwords = status === "enable";
+          await autoModSettings.save();
+          embed.setDescription(`Deteksi kata kasar telah ${status === "enable" ? "diaktifkan" : "dinonaktifkan"}.`);
           return interaction.editReply({ embeds: [embed] });
         }
         case "whitelist": {
@@ -163,6 +182,82 @@ module.exports = {
           embed.setDescription(`daftar yang diperbolehkan automod:\n${whitelistString}`);
           return interaction.editReply({ embeds: [embed] });
         }
+
+        case "badwords": {
+          let badwords = autoModSettings.badwords;
+        
+          if (!Array.isArray(badwords) && typeof badwords === "string") {
+            try {
+              badwords = JSON.parse(badwords);
+            } catch (error) {
+              console.error("gagal parse badwords, reset ke array kosong:", error);
+              badwords = [];
+            }
+          } else if (!Array.isArray(badwords)) {
+            badwords = [];
+          }
+        
+          const word = interaction.options.getString("word");
+          if (!word) {
+            embed.setDescription("kata yang ingin ditambahkan atau dihapus harus diisi.");
+            return interaction.editReply({ embeds: [embed] });
+          }
+        
+          if (action === "add") {
+            if (badwords.includes(word.toLowerCase())) {
+              embed.setDescription("kata tersebut sudah ada di daftar badword.");
+              return interaction.editReply({ embeds: [embed] });
+            }
+        
+            badwords.push(word.toLowerCase());
+            autoModSettings.badwords = badwords;
+            autoModSettings.changed("badwords", true);
+            await autoModSettings.save();
+        
+            embed.setDescription(`kata \`${word}\` telah ditambahkan ke daftar badword.`);
+            return interaction.editReply({ embeds: [embed] });
+          } else if (action === "remove") {
+            if (!badwords.includes(word.toLowerCase())) {
+              embed.setDescription("kata tersebut tidak ada di daftar badword.");
+              return interaction.editReply({ embeds: [embed] });
+            }
+        
+            badwords = badwords.filter((w) => w !== word.toLowerCase());
+            autoModSettings.badwords = badwords;
+            autoModSettings.changed("badwords", true);
+            await autoModSettings.save();
+        
+            embed.setDescription(`kata \`${word}\` telah dihapus dari daftar badword.`);
+            return interaction.editReply({ embeds: [embed] });
+          }
+          break;
+        }
+        case "badwords-list": {
+          let badwords = autoModSettings.badwords;
+        
+          if (typeof badwords === "string") {
+            try {
+              badwords = JSON.parse(badwords);
+            } catch (err) {
+              console.error("gagal parse badwords:", err);
+              badwords = [];
+            }
+          }
+        
+          if (!Array.isArray(badwords)) {
+            badwords = [];
+          }
+        
+          if (badwords.length === 0) {
+            embed.setDescription("daftar kata kasar automod kosong.");
+            return interaction.editReply({ embeds: [embed] });
+          }
+        
+          const badwordsString = badwords.map((w) => `• \`${w}\``).join("\n");
+        
+          embed.setDescription(`daftar kata kasar automod:\n${badwordsString}`);
+          return interaction.editReply({ embeds: [embed] });
+        }        
       }
     } catch (error) {
       console.error("Error during automod command execution:", error);

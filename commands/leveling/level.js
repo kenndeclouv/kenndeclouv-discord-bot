@@ -6,7 +6,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("level")
     .setDescription("Info leveling di server ini.")
-    .addSubcommand((subcommand) => subcommand.setName("profile").setDescription("Lihat profil level Anda."))
+    .addSubcommand((subcommand) => subcommand.setName("profile").setDescription("Lihat profil level Kamu."))
     .addSubcommand((subcommand) => subcommand.setName("leaderboard").setDescription("Lihat papan peringkat level."))
     .addSubcommand((subcommand) =>
       subcommand
@@ -44,12 +44,13 @@ module.exports = {
       switch (subcommand) {
         case "profile": {
           // Mencari data user berdasarkan ID
-          const user = await User.findOne({ where: { userId: interaction.user.id } });
+          let user = await User.findOne({ where: { userId: interaction.user.id } });
 
           // Jika tidak ada data user, beri tahu bahwa profil belum ada
           if (!user) {
+            user = await User.create({ userId: interaction.user.id });
             return interaction.editReply({
-              content: "Anda belum memiliki profil level.",
+              content: "Kamu belum memiliki profil level, membuatkan untuk kamu..",
             });
           }
 
@@ -57,7 +58,7 @@ module.exports = {
           const embed = new EmbedBuilder()
             .setColor("Blue")
             .setTitle("> Profil Level")
-            .setDescription(`**${interaction.user.username}**, Anda berada di level **${user.level || 0}** dengan total XP **${user.xp || 0}**, **XP saat ini:** ${user.xp}/${levelUpXp(user.level)}.`)
+            .setDescription(`**${interaction.user.username}**, Kamu berada di level **${user.level || 0}** dengan total XP **${user.xp || 0}**, **XP saat ini:** ${user.xp}/${levelUpXp(user.level)}.`)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setTimestamp()
             .setFooter({

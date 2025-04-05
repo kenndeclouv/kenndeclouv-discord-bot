@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 const Inventory = require("../../database/models/inventory"); 
 
@@ -23,7 +23,7 @@ module.exports = {
         cooldownTime = 0.5;
       }
       // Cooldown check
-      const cooldown = checkCooldown(user.lastWork, config.cooldowns.work * cooldownTime);
+      const cooldown = checkCooldown(user.lastWork, process.env.WORK_COOLDOWN * cooldownTime);
       if (cooldown.remaining) {
         return interaction.editReply({ content: `🕒 | kamu dapat bekerja lagi dalam **${cooldown.time}**!` });
       }
@@ -51,7 +51,7 @@ module.exports = {
         .setColor(payTax ? "Yellow" : "Green")
         .setTitle("> Hasil Bekerja")
         .setThumbnail(interaction.user.displayAvatarURL())
-        .setDescription(`${interaction.user.username} bekerja keras dan mendapatkan **${randomCash} uang**!${payTax ? ` tapi harus membayar pajak sebesar **${taxAmount} uang**.` : ""}${workedMaximally ? ` dan level karir anda naik **${user.careerMastered}**!` : ""}`)
+        .setDescription(`${interaction.user.username} bekerja keras dan mendapatkan **${randomCash} uang**!${payTax ? ` tapi harus membayar pajak sebesar **${taxAmount} uang**.` : ""}${workedMaximally ? ` dan level karir kamu naik **${user.careerMastered}**!` : ""}`)
         .setTimestamp()
         .setFooter({ text: `Sistem`, iconURL: interaction.client.user.displayAvatarURL() });
       await interaction.editReply({ embeds: [embed] });

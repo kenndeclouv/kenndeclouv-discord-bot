@@ -6,7 +6,9 @@ const AutoMod = sequelize.define('AutoMod', {
   antiInvites: { type: DataTypes.BOOLEAN, defaultValue: false },
   antiLinks: { type: DataTypes.BOOLEAN, defaultValue: false },
   antiSpam: { type: DataTypes.BOOLEAN, defaultValue: false },
+  antiBadwords: { type: DataTypes.BOOLEAN, defaultValue: false },
   whitelist: { type: DataTypes.JSON, defaultValue: [] }, // Menggunakan tipe JSON untuk array
+  badwords: { type: DataTypes.JSON, defaultValue: [] }, // Menggunakan tipe JSON untuk array
   leveling: { type: DataTypes.BOOLEAN, defaultValue: false },
 });
 

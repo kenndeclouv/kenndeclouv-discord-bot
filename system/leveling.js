@@ -8,9 +8,11 @@ const levelUpXp = (level) => level * level * 100;
 // Fungsi untuk menambahkan XP pada pengguna
 const addXp = async (userId, xpToAdd, message, channel) => {
   // Cek apakah user sudah ada di database
-  let user = await User.findOne({ where: { userId } });
+  // let user = await User.findOne({ where: { userId } });
+  let user = await User.findOne({ where: { userId: userId } });
   if (!user) {
-    return console.log("User not found");
+    console.log("User not found, Creating one");
+    user = await User.create({ userId });
   }
 
   // Tambahkan XP ke user
@@ -24,24 +26,43 @@ const addXp = async (userId, xpToAdd, message, channel) => {
     user.xp -= requiredXp; // Kurangi XP yang lebih
 
     // Cek apakah ada role reward untuk level baru
-    const reward = config.cooldowns.roleReward.find((r) => r.level === user.level);
+    const reward = config.roleReward.find((r) => r.level === user.level);
     if (reward) {
       const role = message.guild.roles.cache.get(reward.role);
       const member = message.guild.members.cache.get(userId);
 
       if (role && member) {
         await member.roles.add(role);
-        const roleRewardEmbed = new EmbedBuilder().setColor(0x1e90ff).setTitle("> Role Reward!").setDescription(`Selamat ${message.author}, kamu telah mendapatkan role **${role.name}** karena mencapai level **${user.level}**! 🏅`).setThumbnail(message.author.displayAvatarURL()).setTimestamp().setFooter({
-          text: `Sistem level`,
-          iconURL: message.client.user.displayAvatarURL(),
-        });
+        const roleRewardEmbed = new EmbedBuilder()
+          .setColor(0x1e90ff)
+          .setTitle("> Role Reward!")
+          .setDescription(
+            `Selamat ${message.author}, kamu telah mendapatkan role **${role.name}** karena mencapai level **${user.level}**! 🏅`
+          )
+          .setThumbnail(message.author.displayAvatarURL())
+          .setTimestamp()
+          .setFooter({
+            text: `Sistem level`,
+            iconURL: message.client.user.displayAvatarURL(),
+          });
 
         await channel.send({ embeds: [roleRewardEmbed] });
       }
     }
 
     // Kirim pesan level up di channel
-    const levelUpEmbed = new EmbedBuilder().setColor("Green").setTitle("> Level Up!").setDescription(`selamatt ${message.author}!, kamu telah naik ke level **${user.level}**! 🎉`).setThumbnail(message.author.displayAvatarURL()).setTimestamp().setFooter({ text: `Sistem level`, iconURL: message.client.user.displayAvatarURL() });
+    const levelUpEmbed = new EmbedBuilder()
+      .setColor("Green")
+      .setTitle("> Level Up!")
+      .setDescription(
+        `selamatt ${message.author}!, kamu telah naik ke level **${user.level}**! 🎉`
+      )
+      .setThumbnail(message.author.displayAvatarURL())
+      .setTimestamp()
+      .setFooter({
+        text: `Sistem level`,
+        iconURL: message.client.user.displayAvatarURL(),
+      });
     await channel.send({ embeds: [levelUpEmbed] });
   }
 

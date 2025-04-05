@@ -62,7 +62,7 @@ module.exports = {
             .setColor("Green")
             .setTitle("> kamu Mendapatkan Transfer Uang")
             .setThumbnail(interaction.user.displayAvatarURL())
-            .setDescription(`kamu menerima **${amount} uang** transfer ke bank anda dari **${interaction.user.username}**!`)
+            .setDescription(`kamu menerima **${amount} uang** transfer ke bank kamu dari **${interaction.user.username}**!`)
             .setTimestamp()
             .setFooter({ text: `Diberikan oleh ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
           await target.send({ embeds: [targetEmbed] });

@@ -1,14 +1,14 @@
 require("dotenv").config();
-const { REST, Routes } = require("discord.js");
-const client = require("../client"); // Asumsikan client bot di file terpisah
+import { REST, Routes } from "discord.js";
+import client from "../client"; // Asumsikan client bot di file terpisah
 
 (async () => {
   try {
     console.log("Memulai pengujian slash command...");
 
     // Ambil semua slash command yang terdaftar
-    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
-    const commands = await rest.get(Routes.applicationCommands(process.env.CLIENT_ID));
+    const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_BOT_TOKEN);
+    const commands = await rest.get(Routes.applicationCommands(process.env.DISCORD_BOT_CLIENT_ID));
 
     for (const command of commands) {
       try {
@@ -17,7 +17,7 @@ const client = require("../client"); // Asumsikan client bot di file terpisah
         // Simulasi interaction untuk tiap command
         const mockInteraction = {
           commandName: command.name,
-          guildId: process.env.GUILD_ID,
+          guildId: "1314236534484112370",
           user: { id: "123456789012345678" },
           options: {
             getString: (name) => null,
@@ -43,7 +43,7 @@ const client = require("../client"); // Asumsikan client bot di file terpisah
 
               const mockSubcommandInteraction = {
                 commandName: subcommand.name,
-                guildId: process.env.GUILD_ID,
+                guildId: "1314236534484112370",
                 user: { id: "123456789012345678" },
                 options: {
                   getString: (name) => null,

@@ -4,7 +4,7 @@ const User = require("../../database/models/User");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("coinflip")
-    .setDescription("Flip koin dan coba keberuntungan anda.")
+    .setDescription("Flip koin dan coba keberuntungan kamu.")
     .addIntegerOption((option) => option.setName("bet").setDescription("Jumlah untuk bertaruh").setRequired(true))
     .addStringOption((option) => option.setName("side").setDescription("Heads atau Tails").setRequired(true).addChoices({ name: "Heads", value: "heads" }, { name: "Tails", value: "tails" })),
   async execute(interaction) {

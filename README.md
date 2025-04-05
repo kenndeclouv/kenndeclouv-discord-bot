@@ -106,11 +106,11 @@ pastikan kamu sudah menginstal software berikut:
 
    ```env
    # BOT SETTINGS
-   BOTNAME=bot-name
-   BOTDESCRIPTION=bot-description.
-   TOKEN=your-bot-token
-   CLIENT_ID=bot-application-id
-   ADMIN_ROLE_ID=admin-role-id
+   DISCORD_BOT_NAME=bot-name
+   DISCORD_BOT_DESCRIPTION=bot-description.
+   DISCORD_BOT_TOKEN=your-bot-token
+   DISCORD_BOT_CLIENT_ID=bot-application-id
+   DISCORD_ADMIN_ROLE_ID=admin-role-id
    PREFIX=/
 
    # MYSQL DATABASE
@@ -120,8 +120,8 @@ pastikan kamu sudah menginstal software berikut:
    DB_NAME=discord_bot
 
    # SETTINGS
-   SET_STATUS=online
-   SET_ACTIVITY=Genshin Impact
+   DISCORD_BOT_STATUS=online
+   DISCORD_BOT_ACTIVITY=Genshin Impact
 
    # COMMANDS
    AUTOMOD_ON=true
@@ -155,18 +155,18 @@ pastikan kamu sudah menginstal software berikut:
 
    **keterangan**:
 
-   - `BOTNAME`: nama bot kamu
-   - `BOTDESCRIPTION`: deskripsi singkat tentang bot kamu
-   - `TOKEN`: token bot discord kamu
-   - `CLIENT_ID`: id aplikasi bot kamu
-   - `ADMIN_ROLE_ID`: id role admin di server kamu
+   - `DISCORD_BOT_NAME`: nama bot kamu
+   - `DISCORD_BOT_DESCRIPTION`: deskripsi singkat tentang bot kamu
+   - `DISCORD_BOT_TOKEN`: token bot discord kamu
+   - `DISCORD_BOT_CLIENT_ID`: id aplikasi bot kamu
+   - `DISCORD_ADMIN_ROLE_ID`: id role admin di server kamu
    - `PREFIX`: prefix untuk command bot, default '/'
    - `DB_HOST`: host database, biasanya 'localhost'
    - `DB_USER`: user untuk koneksi ke database
    - `DB_PASSWORD`: password database user
    - `DB_NAME`: nama database yang akan digunakan bot
-   - `SET_STATUS`: status bot, pilih 'online', 'idle', 'dnd', atau 'invisible'
-   - `SET_ACTIVITY`: teks aktivitas bot yang ditampilkan
+   - `DISCORD_BOT_STATUS`: status bot, pilih 'online', 'idle', 'dnd', atau 'invisible'
+   - `DISCORD_BOT_ACTIVITY`: teks aktivitas bot yang ditampilkan
    - `AUTOMOD_ON`: atur ke `true` untuk mengaktifkan automod
    - `ECONOMY_ON`: atur ke `true` untuk mengaktifkan sistem ekonomi
    - `GIVEAWAY_ON`: atur ke `true` untuk mengaktifkan giveaway

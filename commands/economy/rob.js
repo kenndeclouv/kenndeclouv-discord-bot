@@ -1,14 +1,14 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
 const Inventory = require("../../database/models/inventory");
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("rob")
     .setDescription("Coba mencuri uang dari pengguna lain.")
-    .addUserOption((option) => option.setName("target").setDescription("Pengguna yang ingin anda mencuri").setRequired(true)),
+    .addUserOption((option) => option.setName("target").setDescription("Pengguna yang ingin kamu mencuri").setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
     try {
@@ -29,7 +29,7 @@ module.exports = {
       }
 
       // Cooldown check
-      const cooldown = checkCooldown(user.lastRob, config.cooldowns.rob);
+      const cooldown = checkCooldown(user.lastRob, process.env.ROB_COOLDOWN);
       if (cooldown.remaining) {
         return interaction.editReply({ content: `🕒 | kamu dapat mencuri lagi dalam **${cooldown.time}**!` });
       }

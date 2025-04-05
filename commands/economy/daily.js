@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 
 module.exports = {
-  data: new SlashCommandBuilder().setName("daily").setDescription("Kumpulkan uang harian anda."),
+  data: new SlashCommandBuilder().setName("daily").setDescription("Kumpulkan uang harian kamu."),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
     try {
@@ -16,7 +16,7 @@ module.exports = {
       }
 
       // Cooldown check
-      const cooldown = checkCooldown(user.lastDaily, config.cooldowns.daily);
+      const cooldown = checkCooldown(user.lastDaily, process.env.DAILY_COOLDOWN);
       if (cooldown.remaining) {
         return interaction.reply({ content: `🕒 | kamu dapat mengumpulkan uang harian kamu dalam **${cooldown.time}**!`, ephemeral: true });
       }

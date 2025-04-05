@@ -4,7 +4,7 @@ const User = require("../../database/models/User");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("deposit")
-    .setDescription("Simpan uang tunai anda ke bank.")
+    .setDescription("Simpan uang tunai kamu ke bank.")
     .addStringOption((option) => option.setName("type").setDescription("Pilih jenis setor: semua atau sebagian").setRequired(true).addChoices({ name: "Setor Semua", value: "all" }, { name: "Setor Sebagian", value: "partial" }))
     .addIntegerOption(
       (option) => option.setName("amount").setDescription("Jumlah untuk menyimpan").setRequired(false).setMinValue(1) // buat batas minimum jumlah setor

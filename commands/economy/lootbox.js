@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const User = require("../../database/models/User");
-const config = require("../../config");
+require("dotenv").config();
 const checkCooldown = require("../../helpers/checkCooldown");
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
       }
 
       // Cooldown check
-      const cooldown = checkCooldown(user.lastLootbox, config.cooldowns.lootbox);
+      const cooldown = checkCooldown(user.lastLootbox, process.env.LOOTBOX_COOLDOWN);
       if (cooldown.remaining) {
         return interaction.editReply({ content: `🕒 | kamu dapat membuka kotak hadiah lainnya dalam **${cooldown.time}**!` });
       }

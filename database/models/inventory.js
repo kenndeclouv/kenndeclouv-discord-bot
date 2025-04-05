@@ -4,8 +4,8 @@ const sequelize = require("../sequelize");
 const inventorySchema = sequelize.define(
   "Inventory",
   {
-    userId: { type: DataTypes.STRING, required: true },
-    itemName: { type: DataTypes.STRING, required: true },
+    userId: { type: DataTypes.STRING, allowNull: false },
+    itemName: { type: DataTypes.STRING, allowNull: false },
   },
   {
     tableName: "inventory",

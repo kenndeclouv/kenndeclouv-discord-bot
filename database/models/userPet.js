@@ -9,8 +9,8 @@ const UserPetSchema = sequelize.define("UserPet", {
   petName: { type: DataTypes.STRING, allowNull: false },
   hunger: { type: DataTypes.INTEGER, defaultValue: 100 },
   happiness: { type: DataTypes.INTEGER, defaultValue: 100 },
-  lastUse: { type: DataTypes.DATE, default: null },
-  lastGacha: { type: DataTypes.DATE, default: null },
+  lastUse: { type: DataTypes.DATE, defaultValue: null },
+  lastGacha: { type: DataTypes.DATE, defaultValue: null },
   isDead: { type: DataTypes.BOOLEAN, defaultValue: false },
 });
 

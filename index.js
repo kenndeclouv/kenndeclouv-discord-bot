@@ -59,7 +59,7 @@ sequelize.sync().then(() => {
 });
 
 // DEPLOY COMMANDS
-const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_BOT_TOKEN);
 const deployCommands = async () => {
   try {
     console.log("🌀 Memulai refresh perintah aplikasi (/)");
@@ -76,7 +76,7 @@ const deployCommands = async () => {
         }
       }
     });
-    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+    await rest.put(Routes.applicationCommands(process.env.DISCORD_BOT_CLIENT_ID), { body: commands });
     console.log("✅ Berhasil refresh perintah aplikasi (/)");
   } catch (error) {
     console.error("❌ Gagal refresh perintah aplikasi (/):", error);
@@ -142,4 +142,4 @@ client.once("ready", async () => {
   }, 60 * 60 * 1000); // 1 jam
 });
 // BOT LOGIN
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_BOT_TOKEN);

@@ -4,7 +4,7 @@ const User = require("../../database/models/User");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("slots")
-    .setDescription("Mainkan mesin slot dan coba keberuntungan anda. (JUDI HARAM BOY!)")
+    .setDescription("Mainkan mesin slot dan coba keberuntungan kamu. (JUDI HARAM BOY!)")
     .addIntegerOption((option) => option.setName("bet").setDescription("Jumlah untuk bertaruh").setRequired(true)),
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
