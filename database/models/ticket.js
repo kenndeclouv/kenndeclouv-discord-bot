@@ -4,8 +4,8 @@ const sequelize = require("../sequelize");
 const ticketSchema = sequelize.define(
   "Ticket",
   {
-    userId: { type: DataTypes.STRING, allowNull: false },
-    guildId: { type: DataTypes.STRING, allowNull: false },
+    userId: { type: DataTypes.STRING },
+    guildId: { type: DataTypes.STRING },
     channelId: { type: DataTypes.STRING, allowNull: false },
     staffRoleId: { type: DataTypes.STRING, allowNull: false },
     logsChannelId: { type: DataTypes.STRING, allowNull: false },

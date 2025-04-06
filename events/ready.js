@@ -29,8 +29,8 @@ module.exports = {
     };
 
     // update langsung saat ready
-    if (process.env.SERVER_STATS_ON == true) {
-      await updateMemberCounters(); // tambahin await biar pasti kelar sebelum interval
+    if (process.env.SERVER_STATS_ON == "true") {
+      await updateMemberCounters();
       setInterval(updateMemberCounters, 300000);
     }
     console.log(`✅ ${client.user.tag} terhubung!`);

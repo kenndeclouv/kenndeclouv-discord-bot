@@ -52,6 +52,8 @@ module.exports = {
 
         // Buat dokumen tiket baru
         const ticket = new Ticket({
+          guildId: interaction.guild.id,
+          // userId: interaction.user.id,
           channelId: channel.id,
           staffRoleId: staffRole.id,
           logsChannelId: logsChannel.id,
